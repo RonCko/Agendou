@@ -1,0 +1,14 @@
+<h2>Editar Clínica</h2>
+
+<form action="/clinicas/{{clinica.id}}?_method=PUT" method="POST">
+  <label for="nome">Nome:</label>
+  <input type="text" id="nome" name="nome" value="{{clinica.nome}}" required><br>
+
+  <label for="cnpj">CNPJ:</label>
+  <input type="text" id="cnpj" name="cnpj" value="{{clinica.cnpj}}" required><br>
+
+  <label for="endereco">Endereço:</label>
+  <input type="text" id="endereco" name="endereco" value="{{clinica.endereco}}" required><br>
+
+  <button type="submit">Salvar Alterações</button>
+</form>

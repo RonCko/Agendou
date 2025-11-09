@@ -1,0 +1,12 @@
+<h2>Cadastre-se</h2>
+<form action="/register" method="post">
+  <input name="nome" placeholder="Nome" required>
+  <input name="email" type="email" placeholder="Email" required>
+  <input name="senha" type="password" placeholder="Senha" required>
+  <select name="tipo">
+    <option value="paciente">Paciente</option>
+    <option value="clinica">Clínica</option>
+    <option value="admin">admin</option>
+  </select>
+  <button type="submit">Cadastrar</button>
+</form>

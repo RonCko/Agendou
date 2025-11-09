@@ -1,0 +1,34 @@
+<h2>Pacientes</h2>
+<a href="/pacientes/new">Novo Paciente</a>
+
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Nome</th>
+      <th>Email</th>
+      <th>Telefone</th>
+      <th>CPF</th>
+      <th>Data de Nascimento</th>
+      <th>Ações</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each pacientes}}
+      <tr>
+        <td>{{this.id}}</td>
+        <td>{{this.Usuario.nome}}</td>
+        <td>{{this.Usuario.email}}</td>
+        <td>{{this.Usuario.telefone}}</td>
+        <td>{{this.cpf}}</td>
+        <td>{{this.data_nascimento}}</td>
+        <td>
+          <a href="/pacientes/{{this.id}}/edit">Editar</a>
+          <form action="/pacientes/{{this.id}}?_method=DELETE" method="post" style="display:inline">
+            <button>Excluir</button>
+          </form>
+        </td>
+      </tr>
+    {{/each}}
+  </tbody>
+</table>

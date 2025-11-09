@@ -1,0 +1,34 @@
+<h2>Agendamentos</h2>
+<a href="/agendamentos/new">Novo Agendamento</a>
+
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Data</th>
+      <th>Horário</th>
+      <th>Paciente</th>
+      <th>Clínica</th>
+      <th>Médico</th>
+      <th>Ações</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each agendamentos}}
+      <tr>
+        <td>{{this.id}}</td>
+        <td>{{this.data}}</td>
+        <td>{{this.horario}}</td>
+        <td>{{this.paciente.nome}}</td>
+        <td>{{this.clinica.nome}}</td>
+        <td>{{this.medico}}</td>
+        <td>
+          <a href="/agendamentos/{{this.id}}/edit">Editar</a>
+          <form action="/agendamentos/{{this.id}}?_method=DELETE" method="post" style="display:inline">
+            <button>Excluir</button>
+          </form>
+        </td>
+      </tr>
+    {{/each}}
+  </tbody>
+</table>

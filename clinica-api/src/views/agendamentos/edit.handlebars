@@ -1,0 +1,29 @@
+<h2>Editar Agendamento</h2>
+
+<form action="/agendamentos/{{agendamento.id}}?_method=PUT" method="post">
+  <label>Data:</label>
+  <input type="date" name="data" value="{{agendamento.data}}" required>
+
+  <label>Horário:</label>
+  <input type="time" name="horario" value="{{agendamento.horario}}" required>
+
+  <label>Paciente:</label>
+  <select name="pacienteId" required>
+    {{#each pacientes}}
+      <option value="{{this.id}}" {{#ifEquals this.id ../agendamento.pacienteId}}selected{{/ifEquals}}>{{this.nome}}</option>
+    {{/each}}
+  </select>
+
+  <label>Clínica:</label>
+  <select name="clinicaId" required>
+    {{#each clinicas}}
+      <option value="{{this.id}}" {{#ifEquals this.id ../agendamento.clinicaId}}selected{{/ifEquals}}>{{this.nome}}</option>
+    {{/each}}
+  </select>
+
+  <label>Médico:</label>
+  <input type="text" name="medico" value="{{agendamento.medico}}" required>
+
+  <button type="submit">Atualizar</button>
+</form>
+<a href="/agendamentos">Voltar</a>

@@ -1,0 +1,29 @@
+<h2>Novo Agendamento</h2>
+
+<form action="/agendamentos" method="post">
+  <label>Data:</label>
+  <input type="date" name="data" required>
+
+  <label>Horário:</label>
+  <input type="time" name="horario" required>
+
+  <label>Paciente:</label>
+  <select name="pacienteId" required>
+    {{#each pacientes}}
+      <option value="{{this.id}}">{{this.nome}}</option>
+    {{/each}}
+  </select>
+
+  <label>Clínica:</label>
+  <select name="clinicaId" required>
+    {{#each clinicas}}
+      <option value="{{this.id}}">{{this.nome}}</option>
+    {{/each}}
+  </select>
+
+  <label>Médico:</label>
+  <input type="text" name="medico" required>
+
+  <button type="submit">Criar</button>
+</form>
+<a href="/agendamentos">Voltar</a>

@@ -1,0 +1,30 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>{{title}}</title>
+  <link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+  <header>
+    <h1>Meu Sistema de Clínicas</h1>
+    {{#if user}}
+      <p>Olá, {{user.nome}} ({{user.tipo}}) — <a href="/logout">Sair</a></p>
+    {{else}}
+      <a href="/login">Login</a> | <a href="/register">Cadastrar</a>
+    {{/if}}
+    <nav>
+      <a href="/dashboard">Dashboard</a>
+      <a href="/clinicas">Clínicas</a>
+      <a href="/pacientes">Pacientes</a>
+      <a href="/agendamentos">Agendamentos</a>
+    </nav>
+    {{#if success}}<p class="success">{{success}}</p>{{/if}}
+    {{#if error}}<p class="error">{{error}}</p>{{/if}}
+  </header>
+
+  <main>
+    {{{body}}}
+  </main>
+</body>
+</html>
