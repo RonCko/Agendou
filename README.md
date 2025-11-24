@@ -94,36 +94,8 @@ node scripts/test_register.js
 3. Faça login com a clínica, copie o `token` retornado e use-o para chamar `/api/clinic/schedule` (salvar horários).
 4. Verifique a tabela `availabilities` no Supabase Table Editor.
 
-## Remoção do Firebase
-
-Este repositório foi migrado de Firebase Realtime Database para Supabase (Postgres). Arquivos de configuração do Firebase foram removidos/neutralizados e o `package.json` não lista mais `firebase-admin`.
-
-Se houver artefatos locais (por exemplo, arquivos JSON com credenciais do Firebase), apague-os do projeto e do histórico sensível.
-
-## Migração de dados (opcional)
-
-Se você precisa migrar dados do Firebase para Supabase, eu posso gerar um script que:
-- exporta os dados do Firebase em JSON,
-- transforma os registros ao formato das tabelas Postgres,
-- insere os dados no Supabase via `@supabase/supabase-js` (usando `service_role` key).
-
-Peça que eu gere o script se quiser seguir com a migração — precisarei do dump JSON ou acesso ao Realtime Database export.
-
 ## Troubleshooting rápido
 
 - Erro PGRST116 (cannot coerce result to single JSON object): usamos `.maybeSingle()` em consultas onde a linha pode não existir. Se aparecer, olhe a query e verifique se o registro existe no Supabase.
 - Token inválido / 401: verifique se você forneceu o header `Authorization: Bearer <TOKEN>` e se o token foi gerado com a mesma `JWT_SECRET` do `.env`.
 - Erro de FK ao criar clinic/availability: verifique se `clinics` foi criado com `id` igual ao `users.id` (por compatibilidade com o frontend atual) ou ajuste frontend para usar `clinics.id`.
-
-## Próximos passos sugeridos
-
-- (opcional) Gerar Postman collection exportável
-- (opcional) Gerar script de migração automática dos dados do Firebase
-- Configurar RLS (Row Level Security) no Supabase e trocar chamadas públicas para `anon` key + políticas mais seguras
-
-## Contato
-
-Se quiser que eu gere a collection do Postman, o script de migração ou reforçar logs/validações nas rotas, diga qual item prefere e eu adiciono os arquivos.
-
----
-Gerado automaticamente durante a migração para Supabase — adapte conforme necessário.
