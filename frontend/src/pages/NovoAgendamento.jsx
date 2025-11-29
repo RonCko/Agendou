@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { clinicasAPI, agendamentosAPI } from '../services/api';
 import Alert from '../components/Alert';
 import Loading from '../components/Loading';
-import { DollarSign } from 'lucide-react';
+import { DollarSign, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function NovoAgendamento() {
   const { clinicaId } = useParams();
@@ -13,18 +13,29 @@ export default function NovoAgendamento() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [horariosOcupados, setHorariosOcupados] = useState([]);
-  
   const [formData, setFormData] = useState({
     especializacao_id: '',
     data_agendamento: '',
     hora_agendamento: '',
     observacoes: ''
   });
+  const [horariosDisponiveis, setHorariosDisponiveis] = useState([]);
+  const [horariosOcupados, setHorariosOcupados] = useState([]);
+  const [datasDisponiveis, setDatasDisponiveis] = useState(new Set());
+  const [carregandoDatas, setCarregandoDatas] = useState(false);
+  const [mesSelecionado, setMesSelecionado] = useState(new Date());
 
   useEffect(() => {
     carregarClinica();
   }, [clinicaId]);
+
+  useEffect(() => {
+    if (formData.especializacao_id) {
+      carregarDatasDisponiveis();
+    } else {
+      setDatasDisponiveis(new Set());
+    }
+  }, [formData.especializacao_id]);
 
   useEffect(() => {
     if (formData.especializacao_id && formData.data_agendamento) {
@@ -43,6 +54,56 @@ export default function NovoAgendamento() {
     }
   };
 
+  const carregarDatasDisponiveis = async () => {
+    setCarregandoDatas(true);
+    try {
+      const diasDisponiveis = new Set();
+      const hoje = new Date();
+      
+      // Criar array de promessas para fazer requisições em paralelo
+      const promessas = [];
+      
+      for (let i = 0; i < 60; i++) {
+        const data = new Date(hoje);
+        data.setDate(data.getDate() + i);
+        
+        // Converter para string no formato YYYY-MM-DD usando o timezone local
+        const year = data.getFullYear();
+        const month = String(data.getMonth() + 1).padStart(2, '0');
+        const day = String(data.getDate()).padStart(2, '0');
+        const dataStr = `${year}-${month}-${day}`;
+        
+        // Criar promessa para cada dia
+        const promessa = agendamentosAPI.verificarDisponibilidade({
+          clinica_id: clinicaId,
+          especializacao_id: formData.especializacao_id,
+          data_agendamento: dataStr
+        }).then((response) => {
+          if (response.data.horariosDisponiveis && response.data.horariosDisponiveis.length > 0) {
+            return dataStr;
+          }
+          return null;
+        }).catch(() => null);
+        
+        promessas.push(promessa);
+      }
+      
+      // Aguardar todas as promessas
+      const resultados = await Promise.all(promessas);
+      
+      // Filtrar resultados nulos e adicionar ao Set
+      resultados.forEach(data => {
+        if (data) diasDisponiveis.add(data);
+      });
+      
+      setDatasDisponiveis(diasDisponiveis);
+    } catch (error) {
+      console.error('Erro ao carregar datas disponíveis:', error);
+    } finally {
+      setCarregandoDatas(false);
+    }
+  };
+
   const verificarDisponibilidade = async () => {
     try {
       const response = await agendamentosAPI.verificarDisponibilidade({
@@ -50,9 +111,12 @@ export default function NovoAgendamento() {
         especializacao_id: formData.especializacao_id,
         data_agendamento: formData.data_agendamento
       });
+      setHorariosDisponiveis(response.data.horariosDisponiveis || []);
       setHorariosOcupados(response.data.horariosOcupados || []);
     } catch (error) {
       console.error('Erro ao verificar disponibilidade:', error);
+      setHorariosDisponiveis([]);
+      setHorariosOcupados([]);
     }
   };
 
@@ -76,17 +140,72 @@ export default function NovoAgendamento() {
     }
   };
 
-  const gerarHorarios = () => {
-    const horarios = [];
-    for (let h = 8; h <= 18; h++) {
-      horarios.push(`${h.toString().padStart(2, '0')}:00`);
-      if (h < 18) horarios.push(`${h.toString().padStart(2, '0')}:30`);
+  // Função para gerar dias do calendário
+  const gerarDiasDoMes = () => {
+    const ano = mesSelecionado.getFullYear();
+    const mes = mesSelecionado.getMonth();
+    
+    // Primeiro dia do mês
+    const primeiroDia = new Date(ano, mes, 1);
+    // Último dia do mês
+    const ultimoDia = new Date(ano, mes + 1, 0);
+    
+    // Índice do primeiro dia (0 = domingo)
+    const inicioSemana = primeiroDia.getDay();
+    // Total de dias no mês
+    const diasNoMes = ultimoDia.getDate();
+    
+    const dias = [];
+    
+    // Adicionar dias vazios do mês anterior
+    for (let i = 0; i < inicioSemana; i++) {
+      dias.push(null);
     }
-    return horarios;
+    
+    // Adicionar dias do mês
+    for (let dia = 1; dia <= diasNoMes; dia++) {
+      dias.push(new Date(ano, mes, dia));
+    }
+    
+    return dias;
   };
 
-  const isHorarioDisponivel = (horario) => {
-    return !horariosOcupados.includes(horario);
+  const isSameDay = (date1, date2) => {
+    return date1.getDate() === date2.getDate() &&
+           date1.getMonth() === date2.getMonth() &&
+           date1.getFullYear() === date2.getFullYear();
+  };
+
+  const isDataDisponivel = (data) => {
+    // Converter a data para string no formato YYYY-MM-DD usando o timezone local
+    const year = data.getFullYear();
+    const month = String(data.getMonth() + 1).padStart(2, '0');
+    const day = String(data.getDate()).padStart(2, '0');
+    const dataStr = `${year}-${month}-${day}`;
+    return datasDisponiveis.has(dataStr);
+  };
+
+  const isDataPassada = (data) => {
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    return data < hoje;
+  };
+
+  const handleMesAnterior = () => {
+    setMesSelecionado(new Date(mesSelecionado.getFullYear(), mesSelecionado.getMonth() - 1));
+  };
+
+  const handleProximoMes = () => {
+    setMesSelecionado(new Date(mesSelecionado.getFullYear(), mesSelecionado.getMonth() + 1));
+  };
+
+  const handleSelecionarDia = (data) => {
+    // Converter para string no formato YYYY-MM-DD usando o timezone local
+    const year = data.getFullYear();
+    const month = String(data.getMonth() + 1).padStart(2, '0');
+    const day = String(data.getDate()).padStart(2, '0');
+    const dataStr = `${year}-${month}-${day}`;
+    setFormData({ ...formData, data_agendamento: dataStr, hora_agendamento: '' });
   };
 
   if (loading) return <Loading />;
@@ -128,19 +247,109 @@ export default function NovoAgendamento() {
           </select>
         </div>
 
-        {/* Data */}
+        {/* Data - Calendário */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 mb-4">
             Data *
+            {carregandoDatas && <span className="ml-2 text-blue-600">⏳ Verificando...</span>}
           </label>
-          <input
-            type="date"
-            required
-            min={new Date().toISOString().split('T')[0]}
-            value={formData.data_agendamento}
-            onChange={(e) => setFormData({ ...formData, data_agendamento: e.target.value })}
-            className="input-field"
-          />
+          
+          {formData.especializacao_id ? (
+            <div className="border rounded-lg p-4 bg-white">
+              {/* Cabeçalho do Calendário */}
+              <div className="flex items-center justify-between mb-4">
+                <button
+                  type="button"
+                  onClick={handleMesAnterior}
+                  className="p-2 hover:bg-gray-100 rounded"
+                >
+                  <ChevronLeft size={20} />
+                </button>
+                <h3 className="font-semibold text-lg">
+                  {mesSelecionado.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
+                </h3>
+                <button
+                  type="button"
+                  onClick={handleProximoMes}
+                  className="p-2 hover:bg-gray-100 rounded"
+                >
+                  <ChevronRight size={20} />
+                </button>
+              </div>
+
+              {/* Dias da Semana */}
+              <div className="grid grid-cols-7 gap-2 mb-2">
+                {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'].map(dia => (
+                  <div key={dia} className="text-center text-sm font-semibold text-gray-600 py-2">
+                    {dia}
+                  </div>
+                ))}
+              </div>
+
+              {/* Dias do Mês */}
+              <div className="grid grid-cols-7 gap-2">
+                {gerarDiasDoMes().map((data, idx) => {
+                  if (!data) {
+                    return <div key={idx}></div>;
+                  }
+
+                  const isPassada = isDataPassada(data);
+                  const isDisponivel = isDataDisponivel(data);
+                  
+                  // Comparar com a data selecionada
+                  const year = data.getFullYear();
+                  const month = String(data.getMonth() + 1).padStart(2, '0');
+                  const day = String(data.getDate()).padStart(2, '0');
+                  const dataStr = `${year}-${month}-${day}`;
+                  const isSelecionada = formData.data_agendamento === dataStr;
+
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => !isPassada && handleSelecionarDia(data)}
+                      disabled={isPassada || (!carregandoDatas && !isDisponivel)}
+                      className={`
+                        py-2 px-1 rounded-lg text-sm font-medium transition
+                        ${isSelecionada ? 'bg-primary-600 text-white shadow-lg' : ''}
+                        ${!isSelecionada && isDisponivel && !isPassada 
+                          ? 'bg-green-100 hover:bg-green-200 text-green-900 cursor-pointer' 
+                          : ''}
+                        ${!isDisponivel && !isPassada && !isSelecionada
+                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                          : ''}
+                        ${isPassada 
+                          ? 'bg-gray-50 text-gray-300 cursor-not-allowed' 
+                          : ''}
+                      `}
+                    >
+                      {data.getDate()}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Legenda */}
+              <div className="mt-4 flex flex-wrap gap-4 text-xs text-gray-600">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-green-100 border border-green-300 rounded"></div>
+                  <span>Disponível</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-gray-100 rounded"></div>
+                  <span>Indisponível</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-gray-50 rounded"></div>
+                  <span>Passado</span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg">
+              Selecione uma especialização para ver datas disponíveis.
+            </div>
+          )}
         </div>
 
         {/* Horário */}
@@ -148,34 +357,34 @@ export default function NovoAgendamento() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Horário * 
-              {horariosOcupados.length > 0 && (
+              {horariosDisponiveis.length > 0 && (
                 <span className="text-sm text-gray-500 ml-2">
-                  ({horariosOcupados.length} horários ocupados)
+                  ({horariosDisponiveis.length} horários disponíveis)
                 </span>
               )}
             </label>
-            <div className="grid grid-cols-4 gap-2">
-              {gerarHorarios().map((horario) => {
-                const disponivel = isHorarioDisponivel(horario);
-                return (
+            {horariosDisponiveis.length > 0 ? (
+              <div className="grid grid-cols-4 gap-2">
+                {horariosDisponiveis.map((horario) => (
                   <button
                     key={horario}
                     type="button"
-                    disabled={!disponivel}
                     onClick={() => setFormData({ ...formData, hora_agendamento: horario })}
                     className={`py-2 px-4 rounded-lg text-sm font-medium transition ${
                       formData.hora_agendamento === horario
                         ? 'bg-primary-600 text-white'
-                        : disponivel
-                        ? 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                        : 'bg-red-100 text-red-400 cursor-not-allowed line-through'
+                        : 'bg-green-100 hover:bg-green-200 text-green-700'
                     }`}
                   >
                     {horario}
                   </button>
-                );
-              })}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-lg">
+                Nenhum horário disponível para esta data e especialização.
+              </div>
+            )}
           </div>
         )}
 

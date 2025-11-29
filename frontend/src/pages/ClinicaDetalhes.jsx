@@ -98,26 +98,6 @@ export default function ClinicaDetalhes() {
           </div>
         </div>
       )}
-
-      {/* Horários de Atendimento */}
-      {clinica.horarios && clinica.horarios.length > 0 && (
-        <div className="card mb-8">
-          <h2 className="text-2xl font-bold mb-6">Horários de Atendimento</h2>
-          <div className="space-y-2">
-            {clinica.horarios.map((h) => (
-              <div key={h.id} className="flex justify-between items-center border-b pb-2">
-                <span className="font-medium">
-                  {['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][h.dia_semana]}
-                </span>
-                <span className="text-gray-700">
-                  {h.hora_inicio} - {h.hora_fim}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
     </div>
   );
 }

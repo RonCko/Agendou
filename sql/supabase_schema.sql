@@ -85,18 +85,22 @@ CREATE TABLE IF NOT EXISTS clinica_especializacoes (
 );
 
 -- ========================================
--- 6. TABELA DE HORÁRIOS DE ATENDIMENTO DAS CLÍNICAS
+-- 6. TABELA DE HORÁRIOS DE ATENDIMENTO DISPONÍVEIS DAS CLÍNICAS
+-- Armazena slots específicos de dias e horários disponíveis para agendamento
+-- Cada slot está vinculado a uma especialização específica
 -- ========================================
 CREATE TABLE IF NOT EXISTS horarios_atendimento (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     clinica_id UUID NOT NULL REFERENCES clinicas(id) ON DELETE CASCADE,
-    dia_semana INTEGER NOT NULL CHECK (dia_semana BETWEEN 0 AND 6), -- 0=Domingo, 6=Sábado
-    hora_inicio TIME NOT NULL,
-    hora_fim TIME NOT NULL,
-    ativo BOOLEAN DEFAULT true,
+    especializacao_id UUID NOT NULL REFERENCES especializacoes(id) ON DELETE CASCADE,
+    data_disponivel DATE NOT NULL, -- Data específica (ex: 2025-12-01)
+    hora_inicio TIME NOT NULL, -- Horário de início do slot (ex: 09:00)
+    hora_fim TIME NOT NULL, -- Horário de fim do slot (ex: 09:30)
+    ativo BOOLEAN DEFAULT true, -- Se o slot está disponível para agendamento
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE(clinica_id, dia_semana, hora_inicio)
+    -- Evita duplicação de slots idênticos
+    UNIQUE(clinica_id, especializacao_id, data_disponivel, hora_inicio)
 );
 
 -- ========================================

@@ -1,4 +1,4 @@
-import { Agendamento, Paciente, Clinica, Especializacao, Usuario } from '../models/index.js';
+import { Agendamento, Paciente, Clinica, Especializacao, Usuario, HorarioAtendimento } from '../models/index.js';
 import { Op } from 'sequelize';
 
 class AgendamentoController {
@@ -355,7 +355,19 @@ class AgendamentoController {
         });
       }
 
-      // Buscar agendamentos já existentes
+      // Buscar slots disponíveis para essa clínica, especialização e data
+      const slotsDisponiveis = await HorarioAtendimento.findAll({
+        where: {
+          clinica_id,
+          especializacao_id,
+          data_disponivel: data_agendamento,
+          ativo: true
+        },
+        attributes: ['id', 'hora_inicio', 'hora_fim'],
+        order: [['hora_inicio', 'ASC']]
+      });
+
+      // Buscar agendamentos já existentes para essa combinação
       const agendamentosOcupados = await Agendamento.findAll({
         where: {
           clinica_id,
@@ -371,9 +383,16 @@ class AgendamentoController {
 
       const horariosOcupados = agendamentosOcupados.map(a => a.hora_agendamento);
 
+      // Filtrar slots que ainda não foram agendados
+      const horariosDisponiveis = slotsDisponiveis
+        .filter(slot => !horariosOcupados.includes(slot.hora_inicio))
+        .map(slot => slot.hora_inicio);
+
       return res.status(200).json({ 
+        horariosDisponiveis,
         horariosOcupados,
-        mensagem: `${horariosOcupados.length} horários ocupados encontrados`
+        total_disponiveis: horariosDisponiveis.length,
+        total_ocupados: horariosOcupados.length
       });
     } catch (error) {
       console.error('Erro ao verificar disponibilidade:', error);

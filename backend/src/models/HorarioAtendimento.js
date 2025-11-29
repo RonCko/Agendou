@@ -16,26 +16,34 @@ const HorarioAtendimento = sequelize.define('HorarioAtendimento', {
     },
     onDelete: 'CASCADE'
   },
-  dia_semana: {
-    type: DataTypes.INTEGER,
+  especializacao_id: {
+    type: DataTypes.UUID,
     allowNull: false,
-    validate: {
-      min: 0,
-      max: 6
+    references: {
+      model: 'especializacoes',
+      key: 'id'
     },
-    comment: '0=Domingo, 1=Segunda, 2=Terça, 3=Quarta, 4=Quinta, 5=Sexta, 6=Sábado'
+    onDelete: 'CASCADE'
+  },
+  data_disponivel: {
+    type: DataTypes.DATE,
+    allowNull: false,
+    comment: 'Data específica do slot disponível (ex: 2025-12-01)'
   },
   hora_inicio: {
     type: DataTypes.TIME,
-    allowNull: false
+    allowNull: false,
+    comment: 'Horário de início do slot (ex: 09:00)'
   },
   hora_fim: {
     type: DataTypes.TIME,
-    allowNull: false
+    allowNull: false,
+    comment: 'Horário de fim do slot (ex: 09:30)'
   },
   ativo: {
     type: DataTypes.BOOLEAN,
-    defaultValue: true
+    defaultValue: true,
+    comment: 'Se o slot está disponível para agendamento'
   }
 }, {
   tableName: 'horarios_atendimento',
@@ -45,7 +53,7 @@ const HorarioAtendimento = sequelize.define('HorarioAtendimento', {
   indexes: [
     {
       unique: true,
-      fields: ['clinica_id', 'dia_semana', 'hora_inicio']
+      fields: ['clinica_id', 'especializacao_id', 'data_disponivel', 'hora_inicio']
     }
   ]
 });

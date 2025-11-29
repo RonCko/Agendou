@@ -29,29 +29,92 @@ export default function Register() {
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const name = e.target.name;
+    let value = e.target.value;
+
+    //Formatação de dados inseridos
+    if (name === "cpf") {
+      value = value.replace(/\D/g, "").slice(0, 11);
+      value = value
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+    }
+    if (name === "cnpj") {
+      value = value.replace(/\D/g, "").slice(0, 14);
+      value = value
+        .replace(/(\d{2})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d)/, "$1/$2")
+        .replace(/(\d{4})(\d{1,2})$/, "$1-$2");
+    }
+    if (name === "telefone" || name === "telefone_comercial") {
+      value = value.replace(/\D/g, "").slice(0, 11);
+      value = value.length > 10
+        ? value.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3")
+        : value.replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3");
+    }
+    if (name === "cep") {
+      value = value.replace(/\D/g, "").slice(0, 8);
+      value = value.replace(/(\d{5})(\d{3})/, "$1-$2");
+    }
+
+    setFormData({ ...formData, [name]: value });
   };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
+    // Validação de idade mínima (somente pacientes)
+    if (tipo === 'paciente') {
+      const hoje = new Date();
+      const nascimento = new Date(formData.data_nascimento);
+
+      let idade = hoje.getFullYear() - nascimento.getFullYear();
+      const mes = hoje.getMonth() - nascimento.getMonth();
+      const dia = hoje.getDate() - nascimento.getDate();
+
+      // Ajuste da idade caso ainda não tenha feito aniversário este ano
+      if (mes < 0 || (mes === 0 && dia < 0)) {
+        idade--;
+      }
+
+      if (idade < 18) {
+        setError('Você precisa ter pelo menos 18 anos para se cadastrar.');
+        setLoading(false);
+        return;
+      }
+    }
+    const limpar = (valor) => valor.replace(/\D/g, '');
+
     const dataToSend = {
       ...formData,
       tipo,
-      endereco: tipo === 'clinica' ? `${formData.endereco}, ${formData.cidade} - ${formData.estado}` : formData.endereco
+      cpf: limpar(formData.cpf),
+      cnpj: limpar(formData.cnpj),
+      telefone: limpar(formData.telefone),
+      telefone_comercial: limpar(formData.telefone_comercial),
+      cep: limpar(formData.cep),
+      endereco:
+        tipo === 'clinica'
+          ? `${formData.endereco}, ${formData.cidade} - ${formData.estado}`
+          : formData.endereco,
     };
 
     const result = await register(dataToSend);
-    
+
     if (result.success) {
       navigate('/clinicas');
     } else {
       setError(result.error);
     }
+
     setLoading(false);
   };
+
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -67,22 +130,20 @@ export default function Register() {
             <button
               type="button"
               onClick={() => setTipo('paciente')}
-              className={`flex-1 py-3 rounded-lg font-medium transition ${
-                tipo === 'paciente'
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
+              className={`flex-1 py-3 rounded-lg font-medium transition ${tipo === 'paciente'
+                ? 'bg-primary-600 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
             >
               Sou Paciente
             </button>
             <button
               type="button"
               onClick={() => setTipo('clinica')}
-              className={`flex-1 py-3 rounded-lg font-medium transition ${
-                tipo === 'clinica'
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
+              className={`flex-1 py-3 rounded-lg font-medium transition ${tipo === 'clinica'
+                ? 'bg-primary-600 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
             >
               Sou Clínica
             </button>

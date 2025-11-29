@@ -77,6 +77,16 @@ HorarioAtendimento.belongsTo(Clinica, {
   as: 'clinica'
 });
 
+// Especializacao -> HorarioAtendimento (1:N)
+Especializacao.hasMany(HorarioAtendimento, {
+  foreignKey: 'especializacao_id',
+  as: 'horarios_atendimento'
+});
+HorarioAtendimento.belongsTo(Especializacao, {
+  foreignKey: 'especializacao_id',
+  as: 'especializacao'
+});
+
 // Paciente -> Agendamento (1:N)
 Paciente.hasMany(Agendamento, {
   foreignKey: 'paciente_id',
