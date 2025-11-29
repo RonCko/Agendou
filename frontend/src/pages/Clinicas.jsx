@@ -71,36 +71,37 @@ export default function Clinicas() {
   if (loading) return <Loading />;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold mb-8">Clínicas Disponíveis</h1>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Clínicas Disponíveis</h1>
 
       {/* Filtros Refinados */}
-      <div className="bg-white rounded-xl shadow-md p-6 mb-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-            <Search className="text-primary-600" size={24} />
-            Filtros de Busca
+      <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 mb-6 sm:mb-8">
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
+          <h2 className="text-lg sm:text-xl font-bold text-gray-800 flex items-center gap-2">
+            <Search className="text-primary-600" size={20} />
+            <span className="hidden sm:inline">Filtros de Busca</span>
+            <span className="sm:hidden">Filtros</span>
           </h2>
           <button 
             onClick={limparFiltros} 
-            className="text-sm text-gray-600 hover:text-primary-600 transition flex items-center gap-1"
+            className="text-xs sm:text-sm text-gray-600 hover:text-primary-600 transition flex items-center gap-1"
           >
-            <Trash2 size={16} />
-            Limpar
+            <Trash2 size={14} />
+            <span className="hidden sm:inline">Limpar</span>
           </button>
         </div>
 
         {/* Linha 1: Busca, Cidade, Estado */}
-        <div className="grid md:grid-cols-3 gap-4 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mb-3 sm:mb-4">
           <div className="relative">
             <input
               type="text"
               placeholder="Buscar clínica..."
               value={filtros.busca}
               onChange={(e) => setFiltros({ ...filtros, busca: e.target.value })}
-              className="input pl-10"
+              className="input pl-10 text-sm sm:text-base"
             />
-            <Hospital className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+            <Hospital className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
           </div>
           <div className="relative">
             <input
@@ -108,14 +109,14 @@ export default function Clinicas() {
               placeholder="Cidade"
               value={filtros.cidade}
               onChange={(e) => setFiltros({ ...filtros, cidade: e.target.value })}
-              className="input pl-10"
+              className="input pl-10 text-sm sm:text-base"
             />
-            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
           </div>
           <select
             value={filtros.estado}
             onChange={(e) => setFiltros({ ...filtros, estado: e.target.value })}
-            className="input"
+            className="input text-sm sm:text-base"
           >
             <option value="">Todos os Estados</option>
             <option value="SP">São Paulo</option>
@@ -131,11 +132,11 @@ export default function Clinicas() {
         </div>
 
         {/* Linha 2: Especialização, Preços, Ordenação */}
-        <div className="grid md:grid-cols-4 gap-4 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
           <select
             value={filtros.especializacao}
             onChange={(e) => setFiltros({ ...filtros, especializacao: e.target.value })}
-            className="input"
+            className="input text-sm sm:text-base"
           >
             <option value="">Todas as Especializações</option>
             {especializacoes.map((esp) => (
@@ -151,14 +152,14 @@ export default function Clinicas() {
               placeholder="Preço máximo"
               value={filtros.preco_max}
               onChange={(e) => setFiltros({ ...filtros, preco_max: e.target.value })}
-              className="input pl-8"
+              className="input pl-8 text-sm sm:text-base"
             />
-            <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+            <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
           </div>
           <select
             value={filtros.ordenar}
             onChange={(e) => setFiltros({ ...filtros, ordenar: e.target.value })}
-            className="input"
+            className="input text-sm sm:text-base sm:col-span-2 lg:col-span-1"
           >
             <option value="nome">Ordenar por Nome</option>
             <option value="preco">Ordenar por Preço</option>
@@ -168,30 +169,29 @@ export default function Clinicas() {
         {/* Botão de Busca */}
         <button 
           onClick={() => buscarClinicas(1)} 
-          className="w-full md:w-auto btn-primary px-8 py-3 text-base font-semibold flex items-center justify-center gap-2"
+          className="w-full btn-primary px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base font-semibold flex items-center justify-center gap-2"
         >
-          <Search size={20} />
+          <Search size={18} />
           Buscar Clínicas
         </button>
       </div>
 
       {/* Resultados */}
-      <div className="mb-4 text-gray-600">
+      <div className="mb-4 text-sm sm:text-base text-gray-600">
         {clinicas.length > 0 && `${clinicas.length} clínica(s) encontrada(s)`}
       </div>
 
       {/* Lista de Clínicas */}
       {clinicas.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-500 text-lg">Nenhuma clínica encontrada</p>
-          <button onClick={limparFiltros} className="btn-secondary mt-4">
+          <p className="text-gray-500 text-base sm:text-lg">Nenhuma clínica encontrada</p>
+          <button onClick={limparFiltros} className="btn-secondary mt-4 text-sm sm:text-base">
             Limpar Filtros e Ver Todas
           </button>
         </div>
       ) : (
         <>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {clinicas.map((clinica) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">{clinicas.map((clinica) => (
               <Link
                 key={clinica.id}
               to={`/clinicas/${clinica.id}`}

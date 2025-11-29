@@ -9,25 +9,25 @@ export default function Home() {
     <div className="min-h-screen">
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-primary-600 to-primary-800 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-24">
           <div className="text-center">
-            <h1 className="text-5xl font-bold mb-6">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6">
               Agende sua consulta com facilidade
             </h1>
-            <p className="text-xl mb-8 text-primary-100">
+            <p className="text-base sm:text-lg lg:text-xl mb-6 sm:mb-8 text-primary-100 px-4">
               Encontre clínicas médicas particulares e agende online
             </p>
-            <div className="flex justify-center space-x-4">
+            <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 px-4">
               {isAuthenticated ? (
-                <Link to="/clinicas" className="bg-white text-primary-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition">
+                <Link to="/clinicas" className="bg-white text-primary-600 px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition text-center">
                   Ver Clínicas
                 </Link>
               ) : (
                 <>
-                  <Link to="/register" className="bg-white text-primary-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition">
+                  <Link to="/register" className="bg-white text-primary-600 px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition text-center">
                     Começar Agora
                   </Link>
-                  <Link to="/login" className="bg-primary-700 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-800 transition border-2 border-white">
+                  <Link to="/login" className="bg-primary-700 text-white px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-primary-800 transition border-2 border-white text-center">
                     Entrar
                   </Link>
                 </>
@@ -38,9 +38,9 @@ export default function Home() {
       </div>
 
       {/* Features */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <h2 className="text-3xl font-bold text-center mb-12">Como Funciona</h2>
-        <div className="grid md:grid-cols-3 gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+        <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12">Como Funciona</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
           <div className="text-center">
             <div className="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
               <Search className="text-primary-600" size={32} />
@@ -72,13 +72,13 @@ export default function Home() {
       </div>
 
       {/* CTA Section */}
-      <div className="bg-gray-100 py-16">
+      <div className="bg-gray-100 py-12 sm:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold mb-4">Você é uma clínica?</h2>
-          <p className="text-xl text-gray-600 mb-8">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">Você é uma clínica?</h2>
+          <p className="text-base sm:text-xl text-gray-600 mb-6 sm:mb-8 px-4">
             Cadastre-se e comece a receber agendamentos online
           </p>
-          <Link to="/register" className="btn-primary text-lg">
+          <Link to="/register" className="btn-primary text-base sm:text-lg inline-block">
             Cadastrar Clínica
           </Link>
         </div>

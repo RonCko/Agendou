@@ -59,26 +59,26 @@ export default function MeusAgendamentos() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold mb-8">Meus Agendamentos</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Meus Agendamentos</h1>
 
       {message.text && (
         <Alert type={message.type} message={message.text} onClose={() => setMessage({ type: '', text: '' })} />
       )}
 
       {/* Filtros */}
-      <div className="card mb-6">
+      <div className="card mb-6 relative">
         {filtroLoading && (
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
           </div>
         )}
-        <div className="flex space-x-4">
+        <div className="flex flex-wrap gap-2 sm:gap-3">
           {['todos', 'pendente', 'confirmado', 'cancelado', 'realizado'].map((status) => (
             <button
               key={status}
               onClick={() => setFiltro(status)}
               disabled={filtroLoading}
-              className={`px-4 py-2 rounded-lg font-medium transition ${
+              className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition text-sm sm:text-base ${
                 filtro === status
                   ? 'bg-primary-600 text-white'
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -99,18 +99,18 @@ export default function MeusAgendamentos() {
         <div className="space-y-4">
           {agendamentos.map((agendamento) => (
             <div key={agendamento.id} className="card">
-              <div className="flex justify-between items-start">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
                 <div className="flex-1">
-                  <div className="flex items-center space-x-3 mb-3">
-                    <h3 className="text-xl font-bold">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-3">
+                    <h3 className="text-lg sm:text-xl font-bold">
                       {agendamento.clinica?.nome_fantasia}
                     </h3>
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBadge(agendamento.status)}`}>
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBadge(agendamento.status)} self-start`}>
                       {agendamento.status}
                     </span>
                   </div>
                   
-                  <div className="space-y-2 text-gray-700">
+                  <div className="space-y-2 text-sm sm:text-base text-gray-700">
                     <p>
                       <span className="font-medium">Especialização:</span>{' '}
                       {agendamento.especializacao?.icone} {agendamento.especializacao?.nome}
