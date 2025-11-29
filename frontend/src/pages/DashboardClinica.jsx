@@ -145,24 +145,51 @@ export default function DashboardClinica() {
       {graficoUltimos30Dias && graficoUltimos30Dias.length > 0 && (
         <div className="bg-white p-6 rounded-lg shadow">
           <h2 className="text-xl font-bold mb-4">Agendamentos nos Últimos 30 Dias</h2>
-          <div className="flex items-end gap-2 h-64">
-            {graficoUltimos30Dias.slice(-15).map((item, index) => {
-              const maxTotal = Math.max(...graficoUltimos30Dias.map(i => parseInt(i.total)));
-              const height = maxTotal > 0 ? (parseInt(item.total) / maxTotal) * 100 : 0;
-              return (
-                <div key={index} className="flex-1 flex flex-col items-center">
-                  <div className="text-xs font-bold mb-1">{item.total}</div>
-                  <div
-                    className="bg-blue-500 w-full rounded-t"
-                    style={{ height: `${height}%` }}
-                  ></div>
-                  <div className="text-xs text-gray-600 mt-2 transform rotate-45 origin-left whitespace-nowrap">
-                    {new Date(item.data_agendamento).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+          <div className="relative">
+            {/* Gráfico de barras */}
+            <div className="flex items-end justify-between gap-1 h-64 border-b-2 border-l-2 border-gray-300 pb-2 pl-2">
+              {graficoUltimos30Dias.slice(-15).map((item, index) => {
+                const maxTotal = Math.max(...graficoUltimos30Dias.map(i => parseInt(i.total)));
+                const height = maxTotal > 0 ? (parseInt(item.total) / maxTotal) * 100 : 0;
+                const minHeight = parseInt(item.total) > 0 ? 5 : 0; // Altura mínima para valores > 0
+                return (
+                  <div key={index} className="flex-1 flex flex-col items-center justify-end h-full group relative">
+                    {/* Tooltip */}
+                    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                      {new Date(item.data_agendamento).toLocaleDateString('pt-BR')}: {item.total} agendamento{item.total !== '1' ? 's' : ''}
+                    </div>
+                    {/* Valor acima da barra */}
+                    {parseInt(item.total) > 0 && (
+                      <div className="text-xs font-bold mb-1 text-gray-700">{item.total}</div>
+                    )}
+                    {/* Barra */}
+                    <div
+                      className="bg-gradient-to-t from-blue-600 to-blue-400 w-full rounded-t hover:from-blue-700 hover:to-blue-500 transition-all cursor-pointer shadow-sm"
+                      style={{ 
+                        height: `${Math.max(height, minHeight)}%`,
+                        minHeight: minHeight > 0 ? '8px' : '0'
+                      }}
+                    ></div>
+                    {/* Data abaixo da barra */}
+                    <div className="text-xs text-gray-600 mt-2 transform -rotate-45 origin-top-left whitespace-nowrap w-12 h-12">
+                      {new Date(item.data_agendamento).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
+            {/* Legenda do eixo Y */}
+            <div className="absolute left-0 top-0 bottom-14 flex flex-col justify-between text-xs text-gray-600 -ml-8">
+              {[...Array(5)].map((_, i) => {
+                const maxTotal = Math.max(...graficoUltimos30Dias.map(i => parseInt(i.total)));
+                const value = Math.round((maxTotal * (4 - i)) / 4);
+                return <span key={i}>{value}</span>;
+              })}
+            </div>
           </div>
+          <p className="text-sm text-gray-500 mt-6 text-center">
+            Mostrando os últimos 15 dias com agendamentos
+          </p>
         </div>
       )}
 

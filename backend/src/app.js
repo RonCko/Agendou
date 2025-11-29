@@ -3,6 +3,8 @@ import cors from 'cors';
 import session from 'express-session';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import swaggerUi from 'swagger-ui-express';
+import swaggerSpec from './config/swagger.js';
 import config from './config/config.js';
 import routes from './routes/index.js';
 
@@ -38,6 +40,29 @@ if (config.server.env === 'development') {
     next();
   });
 }
+
+// ========================================
+// DOCUMENTAÇÃO SWAGGER
+// ========================================
+
+// Swagger UI
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customSiteTitle: 'API Agendou - Documentação',
+  customfavIcon: 'https://swagger.io/favicon.ico',
+  customCss: '.swagger-ui .topbar { display: none }',
+  swaggerOptions: {
+    persistAuthorization: true,
+    displayRequestDuration: true,
+    filter: true,
+    tryItOutEnabled: true
+  }
+}));
+
+// Swagger JSON
+app.get('/api-docs.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
 
 // ========================================
 // ROTAS

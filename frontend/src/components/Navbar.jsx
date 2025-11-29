@@ -23,9 +23,11 @@ export default function Navbar() {
               <span className="text-xl sm:text-2xl font-bold text-primary-600">Agendou</span>
             </Link>
             <div className="hidden md:ml-10 md:flex md:space-x-8">
-              <Link to="/clinicas" className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">
-                Clínicas
-              </Link>
+              {!isClinica && (
+                <Link to="/clinicas" className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">
+                  Clínicas
+                </Link>
+              )}
               {isPaciente && (
                 <>
                   <Link to="/meus-agendamentos" className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">
@@ -89,13 +91,15 @@ export default function Navbar() {
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-gray-200 bg-white">
           <div className="px-2 pt-2 pb-3 space-y-1">
-            <Link 
-              to="/clinicas" 
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-gray-50"
-            >
-              Clínicas
-            </Link>
+            {!isClinica && (
+              <Link 
+                to="/clinicas" 
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-gray-50"
+              >
+                Clínicas
+              </Link>
+            )}
             {isPaciente && (
               <Link 
                 to="/meus-agendamentos" 

@@ -2,6 +2,16 @@
 
 Sistema completo de agendamento de consultas médicas desenvolvido com **React**, **Node.js**, **Express**, **Sequelize** e **PostgreSQL (Supabase)**.
 
+## 📘 Documentação da API com Swagger
+
+**Acesse a documentação interativa:** http://localhost:3333/api-docs (após iniciar o backend)
+
+✅ Teste todos os endpoints diretamente no navegador  
+✅ Exemplos prontos de requisição/resposta  
+✅ Não precisa configurar nada!  
+
+[Ver Guia Completo do Swagger →](./GUIA_SWAGGER.md)
+
 ---
 
 ## 🚀 Início Rápido
@@ -389,12 +399,28 @@ DB_USER=postgres.SEU_PROJETO_ID
 
 ---
 
-## 📚 Documentação Adicional
+## 📚 Documentação
 
+### 📘 Swagger (Documentação Interativa da API)
+Acesse a documentação interativa completa com possibilidade de testar todos os endpoints diretamente no navegador:
+
+**URL:** http://localhost:3333/api-docs
+
+**Recursos:**
+- ✅ Visualizar todos os endpoints
+- ✅ Testar requisições diretamente
+- ✅ Exemplos de request/response
+- ✅ Autenticação com JWT
+- ✅ Modelos de dados completos
+
+**Guia:** [GUIA_SWAGGER.md](./GUIA_SWAGGER.md) - Tutorial completo de uso
+
+### 📖 Documentação Adicional
+- [DOCUMENTACAO_API.md](./DOCUMENTACAO_API.md) - Documentação completa da API em Markdown
+- [GUIA_TESTES_POSTMAN.md](./GUIA_TESTES_POSTMAN.md) - Guia para testes no Postman
 - [FUNCIONALIDADES_IMPLEMENTADAS.md](./FUNCIONALIDADES_IMPLEMENTADAS.md) - Detalhes de todas as funcionalidades
-- [SETUP_COMPLETO.md](./SETUP_COMPLETO.md) - Guia de instalação passo a passo
-- [backend/README.md](./backend/README.md) - Documentação do backend
-- [frontend/README.md](./frontend/README.md) - Documentação do frontend
+- [GUIA_DE_USO.md](./GUIA_DE_USO.md) - Manual do usuário
+- [RESUMO_ALTERACOES.md](./RESUMO_ALTERACOES.md) - Requisitos e implementações
 
 ---
 

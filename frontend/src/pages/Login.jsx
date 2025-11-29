@@ -19,7 +19,14 @@ export default function Login() {
     const result = await login(email, senha);
     
     if (result.success) {
-      navigate('/clinicas');
+      // Redirecionar baseado no tipo de usuário
+      if (result.user?.tipo === 'clinica') {
+        navigate('/dashboard-clinica');
+      } else if (result.user?.tipo === 'paciente') {
+        navigate('/clinicas');
+      } else {
+        navigate('/');
+      }
     } else {
       setError(result.error);
     }

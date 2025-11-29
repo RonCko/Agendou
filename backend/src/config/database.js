@@ -19,10 +19,10 @@ const sequelize = new Sequelize(
 export const conectarBanco = async () => {
   try {
     await sequelize.authenticate();
-    console.log('✅ Conexão com Supabase PostgreSQL estabelecida com sucesso!');
+    console.log('Conexão com Supabase PostgreSQL estabelecida com sucesso!');
     return true;
   } catch (error) {
-    console.error('❌ Erro ao conectar ao banco:', error.message);
+    console.error('Erro ao conectar ao banco:', error.message);
     return false;
   }
 };
@@ -32,11 +32,11 @@ export const sincronizarModelos = async (force = false) => {
     // Não usar alter ou force quando as tabelas já existem no Supabase
     // As tabelas foram criadas via SQL com views dependentes
     await sequelize.sync({ force: false, alter: false });
-    console.log('✅ Modelos Sequelize sincronizados (verificação)');
+    console.log('Modelos Sequelize sincronizados (verificação)');
   } catch (error) {
-    console.error('❌ Erro ao sincronizar modelos:', error.message);
+    console.error('Erro ao sincronizar modelos:', error.message);
     // Não lançar erro, pois as tabelas já existem
-    console.log('💡 As tabelas já foram criadas no Supabase via SQL');
+    console.log('As tabelas já foram criadas no Supabase via SQL');
   }
 };
 

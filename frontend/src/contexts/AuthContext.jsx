@@ -30,7 +30,7 @@ export function AuthProvider({ children }) {
       localStorage.setItem('user', JSON.stringify(usuario));
       setUser(usuario);
       
-      return { success: true };
+      return { success: true, user: usuario };
     } catch (error) {
       return { 
         success: false, 
