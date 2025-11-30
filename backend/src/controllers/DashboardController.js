@@ -125,7 +125,6 @@ class DashboardController {
         graficoUltimos30Dias: agendamentosUltimos30
       });
     } catch (error) {
-      console.error('Erro ao buscar dashboard da clínica:', error);
       return res.status(500).json({ erro: 'Erro ao buscar dados do dashboard' });
     }
   }
@@ -218,7 +217,6 @@ class DashboardController {
         historicoRecente
       });
     } catch (error) {
-      console.error('Erro ao buscar dashboard do paciente:', error);
       return res.status(500).json({ erro: 'Erro ao buscar dados do dashboard' });
     }
   }

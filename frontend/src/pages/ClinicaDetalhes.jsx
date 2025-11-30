@@ -20,7 +20,7 @@ export default function ClinicaDetalhes() {
       const response = await clinicasAPI.buscarPorId(id);
       setClinica(response.data.clinica);
     } catch (error) {
-      console.error('Erro ao carregar clínica:', error);
+      // Error handled silently
     } finally {
       setLoading(false);
     }

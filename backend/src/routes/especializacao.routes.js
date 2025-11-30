@@ -44,7 +44,6 @@ router.get('/', async (req, res) => {
 
     return res.status(200).json({ especializacoes });
   } catch (error) {
-    console.error('Erro ao listar especializações:', error);
     return res.status(500).json({ erro: 'Erro ao listar especializações' });
   }
 });

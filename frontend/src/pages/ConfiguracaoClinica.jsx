@@ -136,7 +136,6 @@ export default function ConfiguracaoClinica() {
       const response = await clinicasAPI.listarConfiguracoesHorarios(clinicaId);
       setConfiguracoesExistentes(response.data.configuracoes || []);
     } catch (error) {
-      console.error('Erro ao carregar configurações:', error);
       setConfiguracoesExistentes([]);
     }
   }
@@ -146,7 +145,6 @@ export default function ConfiguracaoClinica() {
       const response = await clinicasAPI.listarExcecoes(clinicaId);
       setExcecoesExistentes(response.data.excecoes || []);
     } catch (error) {
-      console.error('Erro ao carregar exceções:', error);
       setExcecoesExistentes([]);
     }
   }
@@ -168,8 +166,6 @@ export default function ConfiguracaoClinica() {
       const response = await clinicasAPI.listarHorarios(clinicaId, filtros);
       setHorariosExistentes(response.data.horarios || []);
     } catch (error) {
-      console.error('Erro ao carregar horários:', error);
-      // Não bloquear a interface se houver erro ao carregar horários
       setHorariosExistentes([]);
     }
   }

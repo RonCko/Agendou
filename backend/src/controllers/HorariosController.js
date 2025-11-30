@@ -36,7 +36,6 @@ router.post("/verificar-disponibilidade", async (req, res) => {
 
     return res.json({ horariosOcupados: agendados });
   } catch (err) {
-    console.error(err);
     return res.status(500).json({ mensagem: "Erro ao verificar disponibilidade" });
   }
 });

@@ -61,7 +61,7 @@ export function AuthProvider({ children }) {
     try {
       await authAPI.logout();
     } catch (error) {
-      console.error('Erro ao fazer logout:', error);
+      // Error handled silently
     } finally {
       localStorage.removeItem('token');
       localStorage.removeItem('user');

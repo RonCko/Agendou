@@ -33,7 +33,7 @@ export default function Clinicas() {
       setClinicas(clinicasRes.data.clinicas);
       setEspecializacoes(especRes.data.especializacoes);
     } catch (error) {
-      console.error('Erro ao carregar:', error);
+      // Error handled silently
     } finally {
       setLoading(false);
     }
@@ -49,7 +49,7 @@ export default function Clinicas() {
         totalPaginas: response.data.totalPaginas
       });
     } catch (error) {
-      console.error('Erro ao buscar:', error);
+      // Error handled silently
     } finally {
       setLoading(false);
     }

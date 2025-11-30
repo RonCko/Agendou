@@ -49,7 +49,6 @@ export default function NovoAgendamento() {
       const response = await clinicasAPI.buscarPorId(clinicaId);
       setClinica(response.data.clinica);
     } catch (error) {
-      console.error('Erro ao carregar clínica:', error);
       setError('Erro ao carregar clínica');
     } finally {
       setLoading(false);
@@ -67,7 +66,6 @@ export default function NovoAgendamento() {
         setConfiguracaoHorarios(null);
       }
     } catch (error) {
-      console.error('Erro ao carregar configuração:', error);
       setConfiguracaoHorarios(null);
     }
   };
@@ -77,10 +75,8 @@ export default function NovoAgendamento() {
       const response = await clinicasAPI.listarExcecoes(clinicaId, {
         especializacao_id: formData.especializacao_id
       });
-      console.log('Bloqueios carregados:', response.data.excecoes);
       setBloqueios(response.data.excecoes || []);
     } catch (error) {
-      console.error('Erro ao carregar bloqueios:', error);
       setBloqueios([]);
     }
   };
@@ -94,9 +90,7 @@ export default function NovoAgendamento() {
       });
       setHorariosDisponiveis(response.data.horariosDisponiveis || []);
     } catch (error) {
-      console.error('Erro ao verificar disponibilidade:', error);
       setHorariosDisponiveis([]);
-      setHorariosOcupados([]);
     }
   };
 

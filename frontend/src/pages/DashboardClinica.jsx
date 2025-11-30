@@ -19,7 +19,7 @@ export default function DashboardClinica() {
       const response = await dashboardAPI.clinica();
       setDados(response.data);
     } catch (error) {
-      console.error('Erro ao carregar dashboard:', error);
+      // Error silently handled
     } finally {
       setLoading(false);
     }

@@ -39,7 +39,6 @@ class UploadController {
         foto_perfil: fotoUrl
       });
     } catch (error) {
-      console.error('Erro ao fazer upload de foto de perfil:', error);
       return res.status(500).json({ erro: 'Erro ao fazer upload' });
     }
   }
@@ -82,7 +81,6 @@ class UploadController {
         foto_capa: fotoUrl
       });
     } catch (error) {
-      console.error('Erro ao fazer upload de foto de capa:', error);
       return res.status(500).json({ erro: 'Erro ao fazer upload' });
     }
   }
@@ -120,7 +118,6 @@ class UploadController {
         fotos: fotosUrls
       });
     } catch (error) {
-      console.error('Erro ao fazer upload de galeria:', error);
       return res.status(500).json({ erro: 'Erro ao fazer upload' });
     }
   }
@@ -158,7 +155,6 @@ class UploadController {
         mensagem: 'Foto removida com sucesso'
       });
     } catch (error) {
-      console.error('Erro ao remover foto:', error);
       return res.status(500).json({ erro: 'Erro ao remover foto' });
     }
   }
