@@ -51,7 +51,12 @@ export const clinicasAPI = {
   atualizar: (id, data) => api.put(`/clinicas/${id}`, data),
   adicionarEspecializacao: (id, data) => api.post(`/clinicas/${id}/especializacoes`, data),
   removerEspecializacao: (id, especId) => api.delete(`/clinicas/${id}/especializacoes/${especId}`),
-  configurarHorarios: (id, data) => api.post(`/clinicas/${id}/horarios`, data)
+  // NOVA ARQUITETURA OTIMIZADA
+  configurarHorariosRecorrentes: (id, data) => api.post(`/clinicas/${id}/horarios/configurar`, data),
+  listarConfiguracoesHorarios: (id, params) => api.get(`/clinicas/${id}/horarios/configuracoes`, { params }),
+  bloquearHorarios: (id, data) => api.post(`/clinicas/${id}/horarios/bloquear`, data),
+  listarExcecoes: (id, params) => api.get(`/clinicas/${id}/horarios/excecoes`, { params }),
+  removerExcecao: (id, excecaoId) => api.delete(`/clinicas/${id}/horarios/excecoes/${excecaoId}`)
 };
 
 // Agendamentos

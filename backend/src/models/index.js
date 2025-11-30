@@ -5,6 +5,8 @@ import Clinica from './Clinica.js';
 import Especializacao from './Especializacao.js';
 import ClinicaEspecializacao from './ClinicaEspecializacao.js';
 import HorarioAtendimento from './HorarioAtendimento.js';
+import ConfiguracaoHorario from './ConfiguracaoHorario.js';
+import HorarioExcecao from './HorarioExcecao.js';
 import Agendamento from './Agendamento.js';
 
 // ========================================
@@ -87,6 +89,48 @@ HorarioAtendimento.belongsTo(Especializacao, {
   as: 'especializacao'
 });
 
+// Clinica -> ConfiguracaoHorario (1:N)
+Clinica.hasMany(ConfiguracaoHorario, {
+  foreignKey: 'clinica_id',
+  as: 'configuracoes_horarios',
+  onDelete: 'CASCADE'
+});
+ConfiguracaoHorario.belongsTo(Clinica, {
+  foreignKey: 'clinica_id',
+  as: 'clinica'
+});
+
+// Especializacao -> ConfiguracaoHorario (1:N)
+Especializacao.hasMany(ConfiguracaoHorario, {
+  foreignKey: 'especializacao_id',
+  as: 'configuracoes_horarios'
+});
+ConfiguracaoHorario.belongsTo(Especializacao, {
+  foreignKey: 'especializacao_id',
+  as: 'especializacao'
+});
+
+// Clinica -> HorarioExcecao (1:N)
+Clinica.hasMany(HorarioExcecao, {
+  foreignKey: 'clinica_id',
+  as: 'horarios_excecoes',
+  onDelete: 'CASCADE'
+});
+HorarioExcecao.belongsTo(Clinica, {
+  foreignKey: 'clinica_id',
+  as: 'clinica'
+});
+
+// Especializacao -> HorarioExcecao (1:N)
+Especializacao.hasMany(HorarioExcecao, {
+  foreignKey: 'especializacao_id',
+  as: 'horarios_excecoes'
+});
+HorarioExcecao.belongsTo(Especializacao, {
+  foreignKey: 'especializacao_id',
+  as: 'especializacao'
+});
+
 // Paciente -> Agendamento (1:N)
 Paciente.hasMany(Agendamento, {
   foreignKey: 'paciente_id',
@@ -131,6 +175,8 @@ export {
   Especializacao,
   ClinicaEspecializacao,
   HorarioAtendimento,
+  ConfiguracaoHorario,
+  HorarioExcecao,
   Agendamento
 };
 
@@ -142,5 +188,7 @@ export default {
   Especializacao,
   ClinicaEspecializacao,
   HorarioAtendimento,
+  ConfiguracaoHorario,
+  HorarioExcecao,
   Agendamento
 };

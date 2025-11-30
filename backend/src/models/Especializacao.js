@@ -16,10 +16,6 @@ const Especializacao = sequelize.define('Especializacao', {
     type: DataTypes.TEXT,
     allowNull: true
   },
-  icone: {
-    type: DataTypes.STRING(50),
-    allowNull: true
-  },
   ativo: {
     type: DataTypes.BOOLEAN,
     defaultValue: true

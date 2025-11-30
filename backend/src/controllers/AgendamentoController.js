@@ -1,4 +1,4 @@
-import { Agendamento, Paciente, Clinica, Especializacao, Usuario, HorarioAtendimento } from '../models/index.js';
+import { Agendamento, Paciente, Clinica, Especializacao, Usuario, HorarioAtendimento, ConfiguracaoHorario, HorarioExcecao } from '../models/index.js';
 import { Op } from 'sequelize';
 
 class AgendamentoController {
@@ -46,7 +46,7 @@ class AgendamentoController {
           },
           {
             association: 'especializacao',
-            attributes: ['nome', 'icone']
+            attributes: ['nome']
           }
         ],
         order: [['data_agendamento', 'ASC'], ['hora_agendamento', 'ASC']]
@@ -214,7 +214,7 @@ class AgendamentoController {
           },
           {
             association: 'especializacao',
-            attributes: ['nome', 'icone']
+            attributes: ['nome']
           }
         ]
       });
@@ -343,7 +343,7 @@ class AgendamentoController {
     }
   }
 
-  // Verificar disponibilidade de horários
+  // Verificar disponibilidade de horários (NOVA ARQUITETURA OTIMIZADA)
   async verificarDisponibilidade(req, res) {
     try {
       const { clinica_id, especializacao_id, data_agendamento } = req.query;
@@ -355,48 +355,177 @@ class AgendamentoController {
         });
       }
 
-      // Buscar slots disponíveis para essa clínica, especialização e data
-      const slotsDisponiveis = await HorarioAtendimento.findAll({
+      // 1. Buscar configuração de horários recorrentes (considerando período de validade)
+      const configuracao = await ConfiguracaoHorario.findOne({
         where: {
           clinica_id,
           especializacao_id,
-          data_disponivel: data_agendamento,
-          ativo: true
-        },
-        attributes: ['id', 'hora_inicio', 'hora_fim'],
-        order: [['hora_inicio', 'ASC']]
+          ativo: true,
+          [Op.or]: [
+            { data_inicio: null }, // Sem data início
+            { data_inicio: { [Op.lte]: data_agendamento } } // Já começou
+          ],
+          [Op.or]: [
+            { data_fim: null }, // Sem data fim
+            { data_fim: { [Op.gte]: data_agendamento } } // Ainda não terminou
+          ]
+        }
       });
 
-      // Buscar agendamentos já existentes para essa combinação
-      const agendamentosOcupados = await Agendamento.findAll({
+      // Se não há configuração, tentar buscar slots antigos (backward compatibility)
+      if (!configuracao) {
+        const slotsAntigos = await HorarioAtendimento.findAll({
+          where: {
+            clinica_id,
+            especializacao_id,
+            data_disponivel: data_agendamento,
+            ativo: true
+          },
+          attributes: ['id', 'hora_inicio', 'hora_fim'],
+          order: [['hora_inicio', 'ASC']]
+        });
+
+        // Buscar agendamentos ocupados
+        const agendamentosOcupados = await Agendamento.findAll({
+          where: {
+            clinica_id,
+            especializacao_id,
+            data_agendamento,
+            status: { [Op.notIn]: ['cancelado', 'faltou'] }
+          },
+          attributes: ['hora_agendamento']
+        });
+
+        const horariosOcupados = agendamentosOcupados.map(a => a.hora_agendamento);
+        const horariosDisponiveis = slotsAntigos
+          .filter(slot => !horariosOcupados.includes(slot.hora_inicio))
+          .map(slot => ({ hora_inicio: slot.hora_inicio, hora_fim: slot.hora_fim }));
+
+        return res.status(200).json({ 
+          horariosDisponiveis,
+          horariosOcupados,
+          total_disponiveis: horariosDisponiveis.length,
+          total_ocupados: horariosOcupados.length,
+          modo: 'legacy'
+        });
+      }
+
+      // 2. Verificar se a data está no dia da semana configurado
+      const data = new Date(data_agendamento + 'T00:00:00');
+      const diaSemana = data.getDay();
+
+      if (!configuracao.dias_semana.includes(diaSemana)) {
+        return res.status(200).json({ 
+          horariosDisponiveis: [],
+          horariosOcupados: [],
+          total_disponiveis: 0,
+          total_ocupados: 0,
+          mensagem: 'Clínica não atende neste dia da semana'
+        });
+      }
+
+      // 3. Verificar se há bloqueio total para este dia (hora_inicio e hora_fim são '00:00' e '23:59')
+      const bloqueioTotal = await HorarioExcecao.findOne({
+        where: {
+          clinica_id,
+          especializacao_id,
+          data_excecao: data_agendamento,
+          [Op.or]: [
+            { hora_inicio: null, hora_fim: null },
+            { hora_inicio: '00:00', hora_fim: '23:59' }
+          ]
+        }
+      });
+
+      if (bloqueioTotal) {
+        return res.status(200).json({ 
+          horariosDisponiveis: [],
+          horariosOcupados: [],
+          total_disponiveis: 0,
+          total_ocupados: 0,
+          mensagem: `Dia bloqueado: ${bloqueioTotal.motivo || bloqueioTotal.tipo}`
+        });
+      }
+
+      // 4. Buscar exceções (bloqueios parciais) para este dia
+      const excecoes = await HorarioExcecao.findAll({
+        where: {
+          clinica_id,
+          especializacao_id,
+          data_excecao: data_agendamento
+        }
+      });
+
+      // 5. Buscar agendamentos já existentes
+      const agendamentos = await Agendamento.findAll({
         where: {
           clinica_id,
           especializacao_id,
           data_agendamento,
-          status: {
-            [Op.notIn]: ['cancelado']
-          }
+          status: { [Op.ne]: 'cancelado' }
         },
-        attributes: ['hora_agendamento'],
-        order: [['hora_agendamento', 'ASC']]
+        attributes: ['hora_agendamento']
       });
 
-      const horariosOcupados = agendamentosOcupados.map(a => a.hora_agendamento);
+      // 6. Gerar slots dinamicamente baseado na configuração
+      const timeToMinutes = (time) => {
+        const [h, m] = time.split(':').map(Number);
+        return h * 60 + m;
+      };
 
-      // Filtrar slots que ainda não foram agendados
-      const horariosDisponiveis = slotsDisponiveis
-        .filter(slot => !horariosOcupados.includes(slot.hora_inicio))
-        .map(slot => slot.hora_inicio);
+      const minutesToTime = (minutes) => {
+        const h = Math.floor(minutes / 60).toString().padStart(2, '0');
+        const m = (minutes % 60).toString().padStart(2, '0');
+        return `${h}:${m}`;
+      };
+
+      const inicioMinutos = timeToMinutes(configuracao.hora_inicio);
+      const fimMinutos = timeToMinutes(configuracao.hora_fim);
+      const almocoInicio = configuracao.intervalo_almoco ? timeToMinutes(configuracao.hora_inicio_almoco) : null;
+      const almocoFim = configuracao.intervalo_almoco ? timeToMinutes(configuracao.hora_fim_almoco) : null;
+
+      const slots = [];
+
+      for (let minutos = inicioMinutos; minutos < fimMinutos; minutos += configuracao.duracao_slot) {
+        // Pular intervalo de almoço
+        if (configuracao.intervalo_almoco && minutos >= almocoInicio && minutos < almocoFim) {
+          continue;
+        }
+
+        const horaInicioSlot = minutesToTime(minutos);
+        const horaFimSlot = minutesToTime(minutos + configuracao.duracao_slot);
+
+        if (minutos + configuracao.duracao_slot > fimMinutos) break;
+
+        // Verificar se há exceção para este horário
+        const bloqueado = excecoes.find(exc => 
+          exc.hora_inicio && 
+          horaInicioSlot >= exc.hora_inicio && 
+          horaInicioSlot < exc.hora_fim
+        );
+
+        if (bloqueado) continue;
+
+        // Verificar se já há agendamento para este horário
+        const agendado = agendamentos.find(ag => ag.hora_agendamento === horaInicioSlot);
+
+        if (!agendado) {
+          slots.push({ hora_inicio: horaInicioSlot, hora_fim: horaFimSlot });
+        }
+      }
+
+      const horariosOcupados = agendamentos.map(a => a.hora_agendamento);
 
       return res.status(200).json({ 
-        horariosDisponiveis,
+        horariosDisponiveis: slots,
         horariosOcupados,
-        total_disponiveis: horariosDisponiveis.length,
-        total_ocupados: horariosOcupados.length
+        total_disponiveis: slots.length,
+        total_ocupados: horariosOcupados.length,
+        modo: 'otimizado'
       });
     } catch (error) {
       console.error('Erro ao verificar disponibilidade:', error);
-      return res.status(500).json({ erro: 'Erro ao verificar disponibilidade' });
+      return res.status(500).json({ erro: 'Erro ao verificar disponibilidade', detalhes: error.message });
     }
   }
 }

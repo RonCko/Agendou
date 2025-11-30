@@ -1,4 +1,4 @@
-import { Clinica, Usuario, ClinicaEspecializacao, Especializacao, HorarioAtendimento} from '../models/index.js';
+import { Clinica, Usuario, ClinicaEspecializacao, Especializacao, HorarioAtendimento, ConfiguracaoHorario, HorarioExcecao, Agendamento } from '../models/index.js';
 import { Op } from 'sequelize';
 import sequelize from '../config/database.js';
 
@@ -42,7 +42,7 @@ class ClinicaController {
         },
         {
           association: 'especializacoes',
-          attributes: ['id', 'nome', 'icone'],
+          attributes: ['id', 'nome'],
           through: { 
             attributes: ['preco', 'duracao_minutos'],
             where: {}
@@ -240,12 +240,28 @@ class ClinicaController {
     }
   }
 
-  // Configurar horários de atendimento
-  async configurarHorarios(req, res) {
+  // ========== NOVA ARQUITETURA OTIMIZADA ==========
+
+  /**
+   * Criar/Atualizar configuração de horários recorrentes
+   * Substitui a geração de milhares de slots individuais
+   */
+  async configurarHorariosRecorrentes(req, res) {
     try {
       const { id } = req.params;
       const usuario = req.usuario || req.usuarioSessao;
-      const { horarios } = req.body; // Array de { dia_semana, hora_inicio, hora_fim }
+      const { 
+        especializacao_id,
+        dias_semana, // Array [0-6]
+        hora_inicio,
+        hora_fim,
+        duracao_slot = 30,
+        intervalo_almoco = false,
+        hora_inicio_almoco,
+        hora_fim_almoco,
+        data_inicio,
+        data_fim
+      } = req.body;
 
       const clinica = await Clinica.findByPk(id);
 
@@ -253,31 +269,248 @@ class ClinicaController {
         return res.status(404).json({ erro: 'Clínica não encontrada' });
       }
 
-      // Verificar permissão (admin pode tudo, clinica só a própria)
+      // Verificar permissão
       if (usuario.tipo !== 'admin' && clinica.usuario_id !== usuario.id) {
         return res.status(403).json({ erro: 'Sem permissão para alterar esta clínica' });
       }
 
-      // Remover horários antigos
-      await HorarioAtendimento.destroy({ where: { clinica_id: id } });
+      // Validações
+      if (!especializacao_id || !dias_semana || !hora_inicio || !hora_fim) {
+        return res.status(400).json({ erro: 'Dados incompletos (especializacao_id, dias_semana, hora_inicio, hora_fim são obrigatórios)' });
+      }
 
-      // Criar novos horários
-      const horariosParaCriar = horarios.map(h => ({
+      // Verificar se a clínica oferece essa especialização
+      const clinicaEspec = await ClinicaEspecializacao.findOne({
+        where: { clinica_id: id, especializacao_id }
+      });
+
+      if (!clinicaEspec) {
+        return res.status(400).json({ erro: 'Clínica não oferece esta especialização' });
+      }
+
+      // Verificar se já existe configuração para esta especialização
+      const configExistente = await ConfiguracaoHorario.findOne({
+        where: { clinica_id: id, especializacao_id }
+      });
+
+      const dadosConfig = {
         clinica_id: id,
-        dia_semana: h.dia_semana,
-        hora_inicio: h.hora_inicio,
-        hora_fim: h.hora_fim,
+        especializacao_id,
+        dias_semana,
+        hora_inicio,
+        hora_fim,
+        duracao_slot: parseInt(duracao_slot),
+        intervalo_almoco,
+        hora_inicio_almoco: intervalo_almoco ? hora_inicio_almoco : null,
+        hora_fim_almoco: intervalo_almoco ? hora_fim_almoco : null,
+        data_inicio: data_inicio || null,
+        data_fim: data_fim || null,
         ativo: true
-      }));
+      };
 
-      await HorarioAtendimento.bulkCreate(horariosParaCriar);
+      let configuracao;
 
-      return res.status(200).json({ mensagem: 'Horários configurados com sucesso' });
+      if (configExistente) {
+        // Atualizar configuração existente
+        await configExistente.update(dadosConfig);
+        configuracao = configExistente;
+      } else {
+        // Criar nova configuração
+        configuracao = await ConfiguracaoHorario.create(dadosConfig);
+      }
+
+      // Retornar configuração com especialização
+      const configuracaoCompleta = await ConfiguracaoHorario.findByPk(configuracao.id, {
+        include: [
+          {
+            model: Especializacao,
+            as: 'especializacao',
+            attributes: ['id', 'nome']
+          }
+        ]
+      });
+
+      return res.status(configExistente ? 200 : 201).json({ 
+        mensagem: configExistente ? 'Configuração atualizada com sucesso' : 'Configuração criada com sucesso',
+        configuracao: configuracaoCompleta
+      });
     } catch (error) {
-      console.error('Erro ao configurar horários:', error);
-      return res.status(500).json({ erro: 'Erro ao configurar horários' });
+      console.error('Erro ao configurar horários recorrentes:', error);
+      return res.status(500).json({ erro: 'Erro ao configurar horários recorrentes', detalhes: error.message });
     }
   }
+
+  /**
+   * Listar configurações de horários da clínica
+   */
+  async listarConfiguracoesHorarios(req, res) {
+    try {
+      const { id } = req.params;
+      const { especializacao_id } = req.query;
+
+      const where = { clinica_id: id, ativo: true };
+
+      if (especializacao_id) {
+        where.especializacao_id = especializacao_id;
+      }
+
+      const configuracoes = await ConfiguracaoHorario.findAll({
+        where,
+        include: [
+          {
+            model: Especializacao,
+            as: 'especializacao',
+            attributes: ['id', 'nome']
+          }
+        ],
+        order: [['created_at', 'DESC']]
+      });
+
+      return res.status(200).json({ configuracoes });
+    } catch (error) {
+      console.error('Erro ao listar configurações:', error);
+      return res.status(500).json({ erro: 'Erro ao listar configurações' });
+    }
+  }
+
+  /**
+   * Bloquear horários específicos (exceções)
+   * Usado para feriados, bloqueios pontuais, etc.
+   */
+  async bloquearHorarios(req, res) {
+    try {
+      const { id } = req.params;
+      const usuario = req.usuario || req.usuarioSessao;
+      const { 
+        especializacao_id,
+        data_excecao,
+        hora_inicio,
+        hora_fim,
+        tipo = 'bloqueio', // bloqueio, feriado, evento, customizado
+        motivo
+      } = req.body;
+
+      const clinica = await Clinica.findByPk(id);
+
+      if (!clinica) {
+        return res.status(404).json({ erro: 'Clínica não encontrada' });
+      }
+
+      // Verificar permissão
+      if (usuario.tipo !== 'admin' && clinica.usuario_id !== usuario.id) {
+        return res.status(403).json({ erro: 'Sem permissão para alterar esta clínica' });
+      }
+
+      // Validações
+      if (!especializacao_id || !data_excecao) {
+        return res.status(400).json({ erro: 'especializacao_id e data_excecao são obrigatórios' });
+      }
+
+      // Criar exceção (se não informar horários, bloqueia dia inteiro)
+      const excecao = await HorarioExcecao.create({
+        clinica_id: id,
+        especializacao_id,
+        data_excecao,
+        hora_inicio: hora_inicio || '00:00',
+        hora_fim: hora_fim || '23:59',
+        tipo,
+        motivo: motivo || null
+      });
+
+      // Retornar exceção com especialização
+      const excecaoCompleta = await HorarioExcecao.findByPk(excecao.id, {
+        include: [
+          {
+            model: Especializacao,
+            as: 'especializacao',
+            attributes: ['id', 'nome']
+          }
+        ]
+      });
+
+      return res.status(201).json({ 
+        mensagem: 'Horário bloqueado com sucesso',
+        excecao: excecaoCompleta
+      });
+    } catch (error) {
+      console.error('Erro ao bloquear horários:', error);
+      return res.status(500).json({ erro: 'Erro ao bloquear horários', detalhes: error.message });
+    }
+  }
+
+  /**
+   * Listar exceções (bloqueios) de horários
+   */
+  async listarExcecoes(req, res) {
+    try {
+      const { id } = req.params;
+      const { especializacao_id, data_inicio, data_fim } = req.query;
+
+      const where = { clinica_id: id };
+
+      if (especializacao_id) {
+        where.especializacao_id = especializacao_id;
+      }
+
+      if (data_inicio || data_fim) {
+        where.data_excecao = {};
+        if (data_inicio) where.data_excecao[Op.gte] = data_inicio;
+        if (data_fim) where.data_excecao[Op.lte] = data_fim;
+      }
+
+      const excecoes = await HorarioExcecao.findAll({
+        where,
+        include: [
+          {
+            model: Especializacao,
+            as: 'especializacao',
+            attributes: ['id', 'nome']
+          }
+        ],
+        order: [['data_excecao', 'ASC']]
+      });
+
+      return res.status(200).json({ excecoes });
+    } catch (error) {
+      console.error('Erro ao listar exceções:', error);
+      return res.status(500).json({ erro: 'Erro ao listar exceções' });
+    }
+  }
+
+  /**
+   * Remover exceção (desbloquear)
+   */
+  async removerExcecao(req, res) {
+    try {
+      const { id, excecao_id } = req.params;
+      const usuario = req.usuario || req.usuarioSessao;
+
+      const clinica = await Clinica.findByPk(id);
+
+      if (!clinica) {
+        return res.status(404).json({ erro: 'Clínica não encontrada' });
+      }
+
+      // Verificar permissão
+      if (usuario.tipo !== 'admin' && clinica.usuario_id !== usuario.id) {
+        return res.status(403).json({ erro: 'Sem permissão para alterar esta clínica' });
+      }
+
+      const removido = await HorarioExcecao.destroy({
+        where: { id: excecao_id, clinica_id: id }
+      });
+
+      if (!removido) {
+        return res.status(404).json({ erro: 'Exceção não encontrada' });
+      }
+
+      return res.status(200).json({ mensagem: 'Exceção removida com sucesso' });
+    } catch (error) {
+      console.error('Erro ao remover exceção:', error);
+      return res.status(500).json({ erro: 'Erro ao remover exceção' });
+    }
+  }
+
 }
 
 export default new ClinicaController();

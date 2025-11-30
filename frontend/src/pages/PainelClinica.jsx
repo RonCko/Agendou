@@ -112,18 +112,18 @@ export default function PainelClinica() {
         <div className="space-y-4">
           {agendamentos.map((agendamento) => (
             <div key={agendamento.id} className="card">
-              <div className="flex flex-col sm:flex-row sm:justify-between gap-4">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
                 <div className="flex-1">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-3">
-                    <h3 className="text-lg sm:text-xl font-bold">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+                    <h3 className="text-lg font-semibold">
                       {agendamento.paciente?.usuario?.nome}
                     </h3>
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBadge(agendamento.status)} self-start`}>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(agendamento.status)} self-start`}>
                       {agendamento.status}
                     </span>
                   </div>
                   
-                  <div className="space-y-2 text-sm sm:text-base text-gray-700">
+                  <div className="space-y-1 text-sm text-gray-700">
                     <p>
                       <span className="font-medium">Especialização:</span>{' '}
                       {agendamento.especializacao?.nome}
@@ -136,12 +136,12 @@ export default function PainelClinica() {
                       <span className="font-medium">Horário:</span>{' '}
                       {agendamento.hora_agendamento}
                     </p>
-                    <p className="text-xs sm:text-sm break-all">
+                    <p className="text-xs">
                       <span className="font-medium">Contato:</span>{' '}
                       {agendamento.paciente?.usuario?.telefone} | {agendamento.paciente?.usuario?.email}
                     </p>
                     {agendamento.observacoes && (
-                      <p className="text-xs sm:text-sm text-gray-600">
+                      <p className="text-xs text-gray-600">
                         <span className="font-medium">Observações:</span>{' '}
                         {agendamento.observacoes}
                       </p>
@@ -155,7 +155,7 @@ export default function PainelClinica() {
                       <button
                         onClick={() => atualizarStatus(agendamento.id, 'confirmado')}
                         disabled={atualizandoStatus === agendamento.id}
-                        className="px-3 sm:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                        className="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                       >
                         {atualizandoStatus === agendamento.id ? (
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -166,7 +166,7 @@ export default function PainelClinica() {
                       <button
                         onClick={() => atualizarStatus(agendamento.id, 'cancelado')}
                         disabled={atualizandoStatus === agendamento.id}
-                        className="px-3 sm:px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         Cancelar
                       </button>
@@ -176,7 +176,7 @@ export default function PainelClinica() {
                     <button
                       onClick={() => atualizarStatus(agendamento.id, 'realizado')}
                       disabled={atualizandoStatus === agendamento.id}
-                      className="px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center whitespace-nowrap"
+                      className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center whitespace-nowrap"
                     >
                       {atualizandoStatus === agendamento.id ? (
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>

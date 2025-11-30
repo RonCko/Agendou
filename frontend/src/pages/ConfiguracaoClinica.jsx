@@ -12,7 +12,8 @@ export default function ConfiguracaoClinica() {
   const [alert, setAlert] = useState(null);
   const [clinica, setClinica] = useState(null);
   const [especializacoes, setEspecializacoes] = useState([]);
-  const [activeTab, setActiveTab] = useState('dados'); // dados, especializacoes, horarios, fotos
+  const [activeTab, setActiveTab] = useState('dados'); // dados, especializacoes, horarios, bloqueios, fotos
+  const [modoHorarios, setModoHorarios] = useState('configuracao'); // configuracao, bloqueios
 
   // Dados da clínica
   const [dadosClinica, setDadosClinica] = useState({
@@ -32,17 +33,65 @@ export default function ConfiguracaoClinica() {
     duracao_minutos: 30
   });
 
-  // Horários de atendimento
-  const [horarios, setHorarios] = useState([
-    { dia_semana: 1, hora_inicio: '08:00', hora_fim: '18:00', ativo: true },
-    { dia_semana: 2, hora_inicio: '08:00', hora_fim: '18:00', ativo: true },
-    { dia_semana: 3, hora_inicio: '08:00', hora_fim: '18:00', ativo: true },
-    { dia_semana: 4, hora_inicio: '08:00', hora_fim: '18:00', ativo: true },
-    { dia_semana: 5, hora_inicio: '08:00', hora_fim: '18:00', ativo: true },
-    { dia_semana: 6, hora_inicio: '08:00', hora_fim: '12:00', ativo: false }
-  ]);
+  // NOVA ARQUITETURA: Configuração recorrente
+  const [configuracaoHorarios, setConfiguracaoHorarios] = useState({
+    especializacao_id: '',
+    dias_semana: [1, 2, 3, 4, 5],
+    hora_inicio: '08:00',
+    hora_fim: '18:00',
+    duracao_slot: 30,
+    intervalo_almoco: false,
+    hora_inicio_almoco: '12:00',
+    hora_fim_almoco: '13:00',
+    data_inicio: '',
+    data_fim: ''
+  });
 
-  const diasSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+  const [configuracoesExistentes, setConfiguracoesExistentes] = useState([]);
+
+  // Exceções/Bloqueios
+  const [novobloqueio, setNovobloqueio] = useState({
+    especializacao_id: '',
+    data_excecao: '',
+    hora_inicio: '',
+    hora_fim: '',
+    tipo: 'bloqueio',
+    motivo: '',
+    dia_inteiro: true
+  });
+
+  const [excecoesExistentes, setExcecoesExistentes] = useState([]);
+
+  // LEGACY: manter para compatibilidade
+  const [geradorHorarios, setGeradorHorarios] = useState({
+    especializacao_id: '',
+    data_inicio: '',
+    data_fim: '',
+    dias_semana: [1, 2, 3, 4, 5],
+    hora_inicio: '08:00',
+    hora_fim: '18:00',
+    duracao_slot: 30,
+    intervalo_almoco: false,
+    hora_inicio_almoco: '12:00',
+    hora_fim_almoco: '13:00'
+  });
+
+  const [horariosExistentes, setHorariosExistentes] = useState([]);
+  const [filtroHorarios, setFiltroHorarios] = useState({
+    especializacao_id: '',
+    data_inicio: '',
+    data_fim: ''
+  });
+
+  const diasSemana = [
+    { value: 0, label: 'Dom' },
+    { value: 1, label: 'Seg' },
+    { value: 2, label: 'Ter' },
+    { value: 3, label: 'Qua' },
+    { value: 4, label: 'Qui' },
+    { value: 5, label: 'Sex' },
+    { value: 6, label: 'Sáb' }
+  ];
 
   useEffect(() => {
     carregarDados();
@@ -68,14 +117,10 @@ export default function ConfiguracaoClinica() {
           telefone_comercial: clinicaData.telefone_comercial || ''
         });
 
-        if (clinicaData.horarios && clinicaData.horarios.length > 0) {
-          setHorarios(clinicaData.horarios.map(h => ({
-            dia_semana: h.dia_semana,
-            hora_inicio: h.hora_inicio,
-            hora_fim: h.hora_fim,
-            ativo: h.ativo
-          })));
-        }
+        // Carregar configurações e horários
+        await carregarConfiguracoes(clinicaData.id);
+        await carregarExcecoes(clinicaData.id);
+        await carregarHorarios(clinicaData.id);
       }
 
       setEspecializacoes(especRes.data.especializacoes || []);
@@ -83,6 +128,49 @@ export default function ConfiguracaoClinica() {
       setAlert({ type: 'error', message: 'Erro ao carregar dados' });
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function carregarConfiguracoes(clinicaId) {
+    try {
+      const response = await clinicasAPI.listarConfiguracoesHorarios(clinicaId);
+      setConfiguracoesExistentes(response.data.configuracoes || []);
+    } catch (error) {
+      console.error('Erro ao carregar configurações:', error);
+      setConfiguracoesExistentes([]);
+    }
+  }
+
+  async function carregarExcecoes(clinicaId) {
+    try {
+      const response = await clinicasAPI.listarExcecoes(clinicaId);
+      setExcecoesExistentes(response.data.excecoes || []);
+    } catch (error) {
+      console.error('Erro ao carregar exceções:', error);
+      setExcecoesExistentes([]);
+    }
+  }
+
+  async function carregarHorarios(clinicaId) {
+    try {
+      // Construir objeto de filtros apenas com valores não vazios
+      const filtros = {};
+      if (filtroHorarios.especializacao_id) {
+        filtros.especializacao_id = filtroHorarios.especializacao_id;
+      }
+      if (filtroHorarios.data_inicio) {
+        filtros.data_inicio = filtroHorarios.data_inicio;
+      }
+      if (filtroHorarios.data_fim) {
+        filtros.data_fim = filtroHorarios.data_fim;
+      }
+      
+      const response = await clinicasAPI.listarHorarios(clinicaId, filtros);
+      setHorariosExistentes(response.data.horarios || []);
+    } catch (error) {
+      console.error('Erro ao carregar horários:', error);
+      // Não bloquear a interface se houver erro ao carregar horários
+      setHorariosExistentes([]);
     }
   }
 
@@ -120,14 +208,199 @@ export default function ConfiguracaoClinica() {
     }
   }
 
+  // ===== NOVA ARQUITETURA: CONFIGURAÇÃO RECORRENTE =====
+  
+  async function handleSalvarConfiguracao(e) {
+    e.preventDefault();
+    
+    if (!configuracaoHorarios.especializacao_id) {
+      setAlert({ type: 'error', message: 'Selecione uma especialização' });
+      return;
+    }
+
+    if (configuracaoHorarios.dias_semana.length === 0) {
+      setAlert({ type: 'error', message: 'Selecione pelo menos um dia da semana' });
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await clinicasAPI.configurarHorariosRecorrentes(clinica.id, configuracaoHorarios);
+      setAlert({ type: 'success', message: 'Configuração salva com sucesso! 🎉' });
+      await carregarConfiguracoes(clinica.id);
+      
+      // Resetar formulário
+      setConfiguracaoHorarios({
+        especializacao_id: '',
+        dias_semana: [1, 2, 3, 4, 5],
+        hora_inicio: '08:00',
+        hora_fim: '18:00',
+        duracao_slot: 30,
+        intervalo_almoco: false,
+        hora_inicio_almoco: '12:00',
+        hora_fim_almoco: '13:00',
+        data_inicio: '',
+        data_fim: ''
+      });
+    } catch (error) {
+      setAlert({ type: 'error', message: error.response?.data?.erro || 'Erro ao salvar configuração' });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleBloquearHorario(e) {
+    e.preventDefault();
+    
+    if (!novobloqueio.especializacao_id || !novobloqueio.data_excecao) {
+      setAlert({ type: 'error', message: 'Preencha especialização e data' });
+      return;
+    }
+
+    try {
+      const dados = {
+        especializacao_id: novobloqueio.especializacao_id,
+        data_excecao: novobloqueio.data_excecao,
+        tipo: novobloqueio.tipo,
+        motivo: novobloqueio.motivo || null
+      };
+
+      // Se não for dia inteiro, incluir horários
+      if (!novobloqueio.dia_inteiro) {
+        dados.hora_inicio = novobloqueio.hora_inicio;
+        dados.hora_fim = novobloqueio.hora_fim;
+      }
+
+      await clinicasAPI.bloquearHorarios(clinica.id, dados);
+      setAlert({ type: 'success', message: 'Horário bloqueado com sucesso!' });
+      await carregarExcecoes(clinica.id);
+      
+      // Resetar formulário
+      setNovobloqueio({
+        especializacao_id: '',
+        data_excecao: '',
+        hora_inicio: '',
+        hora_fim: '',
+        tipo: 'bloqueio',
+        motivo: '',
+        dia_inteiro: true
+      });
+    } catch (error) {
+      setAlert({ type: 'error', message: error.response?.data?.erro || 'Erro ao bloquear horário' });
+    }
+  }
+
+  async function handleRemoverExcecao(excecaoId) {
+    if (!confirm('Deseja remover este bloqueio?')) return;
+    
+    try {
+      await clinicasAPI.removerExcecao(clinica.id, excecaoId);
+      setAlert({ type: 'success', message: 'Bloqueio removido!' });
+      await carregarExcecoes(clinica.id);
+    } catch (error) {
+      setAlert({ type: 'error', message: error.response?.data?.erro || 'Erro ao remover bloqueio' });
+    }
+  }
+
+  // ===== LEGACY: MANTER PARA COMPATIBILIDADE =====
+
   async function handleSalvarHorarios(e) {
     e.preventDefault();
-    try {
-      await clinicasAPI.configurarHorarios(clinica.id, { horarios });
-      setAlert({ type: 'success', message: 'Horários configurados com sucesso!' });
-    } catch (error) {
-      setAlert({ type: 'error', message: error.response?.data?.erro || 'Erro ao salvar horários' });
+    
+    if (!geradorHorarios.especializacao_id) {
+      setAlert({ type: 'error', message: 'Selecione uma especialização' });
+      return;
     }
+
+    if (!geradorHorarios.data_inicio || !geradorHorarios.data_fim) {
+      setAlert({ type: 'error', message: 'Defina o período (data início e fim)' });
+      return;
+    }
+
+    if (geradorHorarios.dias_semana.length === 0) {
+      setAlert({ type: 'error', message: 'Selecione pelo menos um dia da semana' });
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await clinicasAPI.gerarHorarios(clinica.id, geradorHorarios);
+      setAlert({ type: 'success', message: 'Horários gerados com sucesso!' });
+      await carregarHorarios(clinica.id);
+      
+      // Resetar formulário
+      setGeradorHorarios({
+        ...geradorHorarios,
+        data_inicio: '',
+        data_fim: ''
+      });
+    } catch (error) {
+      setAlert({ type: 'error', message: error.response?.data?.erro || 'Erro ao gerar horários' });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleRemoverHorarios(especializacaoId, dataInicio, dataFim) {
+    if (!confirm(`Deseja remover todos os horários desta especialização no período selecionado?`)) return;
+    
+    try {
+      await clinicasAPI.removerHorarios(clinica.id, {
+        especializacao_id: especializacaoId,
+        data_inicio: dataInicio,
+        data_fim: dataFim
+      });
+      setAlert({ type: 'success', message: 'Horários removidos com sucesso!' });
+      await carregarHorarios(clinica.id);
+    } catch (error) {
+      setAlert({ type: 'error', message: error.response?.data?.erro || 'Erro ao remover horários' });
+    }
+  }
+
+  function toggleDiaSemana(dia) {
+    const novosDias = geradorHorarios.dias_semana.includes(dia)
+      ? geradorHorarios.dias_semana.filter(d => d !== dia)
+      : [...geradorHorarios.dias_semana, dia].sort();
+    
+    setGeradorHorarios({ ...geradorHorarios, dias_semana: novosDias });
+  }
+
+  function toggleDiaSemanaConfig(dia) {
+    const novosDias = configuracaoHorarios.dias_semana.includes(dia)
+      ? configuracaoHorarios.dias_semana.filter(d => d !== dia)
+      : [...configuracaoHorarios.dias_semana, dia].sort();
+    
+    setConfiguracaoHorarios({ ...configuracaoHorarios, dias_semana: novosDias });
+  }
+
+  function obterDataMinima() {
+    const hoje = new Date();
+    return hoje.toISOString().split('T')[0];
+  }
+
+  function agruparHorariosPorEspecializacao() {
+    const agrupado = {};
+    
+    if (!horariosExistentes || horariosExistentes.length === 0) {
+      return [];
+    }
+    
+    horariosExistentes.forEach(horario => {
+      if (!horario || !horario.especializacao_id) return;
+      
+      const key = horario.especializacao_id;
+      if (!agrupado[key]) {
+        // Tentar ambas as capitalizações (Sequelize pode retornar de formas diferentes)
+        const especializacao = horario.especializacao || horario.Especializacao;
+        agrupado[key] = {
+          especializacao: especializacao || { id: key, nome: 'Sem nome' },
+          horarios: []
+        };
+      }
+      agrupado[key].horarios.push(horario);
+    });
+
+    return Object.values(agrupado);
   }
 
   async function handleUploadFotoCapa(e) {
@@ -363,65 +636,411 @@ export default function ConfiguracaoClinica() {
         </div>
       )}
 
-      {/* Horários */}
+      {/* Horários - NOVA ARQUITETURA OTIMIZADA */}
       {activeTab === 'horarios' && (
-        <div className="bg-gradient-to-br from-white to-gray-50 p-8 rounded-xl shadow-lg">
-          <h2 className="text-2xl font-bold mb-6 text-gray-800">Horários de Atendimento</h2>
-          <form onSubmit={handleSalvarHorarios} className="space-y-4">
-            {horarios.map((horario, index) => (
-              <div key={horario.dia_semana} className={`flex items-center gap-4 border-2 p-4 rounded-lg transition-all ${
-                horario.ativo ? 'bg-white border-gray-200 hover:border-primary-200' : 'bg-gray-50 border-gray-100'
-              }`}>
-                <div className="w-36">
-                  <label className="flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={horario.ativo}
-                      onChange={e => {
-                        const novosHorarios = [...horarios];
-                        novosHorarios[index].ativo = e.target.checked;
-                        setHorarios(novosHorarios);
-                      }}
-                      className="w-5 h-5 text-primary-600 rounded focus:ring-2 focus:ring-primary-200 mr-3"
-                    />
-                    <span className="font-semibold text-gray-700">{diasSemana[horario.dia_semana]}</span>
-                  </label>
+        <div className="space-y-6">
+          {/* Seletor de Modo */}
+          <div className="flex gap-4 mb-6 overflow-x-auto pb-2">
+            <button
+              onClick={() => setModoHorarios('configuracao')}
+              className={`px-6 py-3 rounded-lg font-semibold transition-all whitespace-nowrap ${
+                modoHorarios === 'configuracao'
+                  ? 'bg-primary-600 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              Configuração Recorrente
+            </button>
+            <button
+              onClick={() => setModoHorarios('bloqueios')}
+              className={`px-6 py-3 rounded-lg font-semibold transition-all whitespace-nowrap ${
+                modoHorarios === 'bloqueios'
+                  ? 'bg-primary-600 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              Bloqueios e Exceções
+            </button>
+          </div>
+
+          {/* MODO: CONFIGURAÇÃO RECORRENTE */}
+          {modoHorarios === 'configuracao' && (
+            <>
+              <div className="bg-gradient-to-br from-white to-blue-50 p-8 rounded-xl shadow-lg border-2 border-blue-100">
+                <div className="flex items-center gap-3 mb-4">
+                  <Clock className="text-primary-600" size={28} />
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-800">Configurar Horários Recorrentes</h2>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <input
-                    type="time"
-                    value={horario.hora_inicio}
-                    onChange={e => {
-                      const novosHorarios = [...horarios];
-                      novosHorarios[index].hora_inicio = e.target.value;
-                      setHorarios(novosHorarios);
-                    }}
-                    className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
-                    disabled={!horario.ativo}
-                  />
-                </div>
-                <span className="text-gray-500 font-medium">até</span>
-                <div className="flex-1">
-                  <input
-                    type="time"
-                    value={horario.hora_fim}
-                    onChange={e => {
-                      const novosHorarios = [...horarios];
-                      novosHorarios[index].hora_fim = e.target.value;
-                      setHorarios(novosHorarios);
-                    }}
-                    className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
-                    disabled={!horario.ativo}
-                  />
-                </div>
+                
+                <form onSubmit={handleSalvarConfiguracao} className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Especialização *</label>
+                    <select
+                      value={configuracaoHorarios.especializacao_id}
+                      onChange={e => setConfiguracaoHorarios({ ...configuracaoHorarios, especializacao_id: e.target.value })}
+                      className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all outline-none"
+                      required
+                    >
+                      <option value="">Selecione...</option>
+                      {clinica.especializacoes?.map(esp => (
+                        <option key={esp.id} value={esp.id}>{esp.nome}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">
+                      Dias da Semana * <span className="text-gray-500 font-normal">(dias de atendimento)</span>
+                    </label>
+                    <div className="flex flex-wrap gap-3">
+                      {diasSemana.map(dia => (
+                        <button
+                          key={dia.value}
+                          type="button"
+                          onClick={() => toggleDiaSemanaConfig(dia.value)}
+                          className={`px-6 py-3 rounded-lg font-semibold transition-all ${
+                            configuracaoHorarios.dias_semana.includes(dia.value)
+                              ? 'bg-primary-600 text-white shadow-md hover:bg-primary-700'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                        >
+                          {dia.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Horário Início *</label>
+                      <input
+                        type="time"
+                        value={configuracaoHorarios.hora_inicio}
+                        onChange={e => setConfiguracaoHorarios({ ...configuracaoHorarios, hora_inicio: e.target.value })}
+                        className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all outline-none"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Horário Fim *</label>
+                      <input
+                        type="time"
+                        value={configuracaoHorarios.hora_fim}
+                        onChange={e => setConfiguracaoHorarios({ ...configuracaoHorarios, hora_fim: e.target.value })}
+                        className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all outline-none"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Duração *</label>
+                      <select
+                        value={configuracaoHorarios.duracao_slot}
+                        onChange={e => setConfiguracaoHorarios({ ...configuracaoHorarios, duracao_slot: parseInt(e.target.value) })}
+                        className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all outline-none"
+                        required
+                      >
+                        <option value="15">15 min</option>
+                        <option value="30">30 min</option>
+                        <option value="45">45 min</option>
+                        <option value="60">60 min</option>
+                        <option value="90">90 min</option>
+                        <option value="120">120 min</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-6 rounded-lg border-2 border-gray-200">
+                    <label className="flex items-center gap-3 cursor-pointer mb-4">
+                      <input
+                        type="checkbox"
+                        checked={configuracaoHorarios.intervalo_almoco}
+                        onChange={e => setConfiguracaoHorarios({ ...configuracaoHorarios, intervalo_almoco: e.target.checked })}
+                        className="w-5 h-5 text-primary-600 rounded focus:ring-2 focus:ring-primary-200"
+                      />
+                      <span className="font-semibold text-gray-700">Intervalo de almoço</span>
+                    </label>
+                    
+                    {configuracaoHorarios.intervalo_almoco && (
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-2">Início</label>
+                          <input
+                            type="time"
+                            value={configuracaoHorarios.hora_inicio_almoco}
+                            onChange={e => setConfiguracaoHorarios({ ...configuracaoHorarios, hora_inicio_almoco: e.target.value })}
+                            className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-2">Fim</label>
+                          <input
+                            type="time"
+                            value={configuracaoHorarios.hora_fim_almoco}
+                            onChange={e => setConfiguracaoHorarios({ ...configuracaoHorarios, hora_fim_almoco: e.target.value })}
+                            className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all outline-none"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex justify-end pt-4">
+                    <button
+                      type="submit"
+                      disabled={!clinica.especializacoes || clinica.especializacoes.length === 0}
+                      className="px-8 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:bg-gray-300 disabled:cursor-not-allowed"
+                    >
+                      💾 Salvar Configuração
+                    </button>
+                  </div>
+
+                  <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 text-sm text-blue-800">
+                    <p className="font-semibold mb-2">Como funciona:</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Configure somente uma vez e os horários são gerados automaticamente</li>
+                      <li>Para feriados/bloqueios, use a aba "Bloqueios e Exceções"</li>
+                    </ul>
+                  </div>
+                </form>
               </div>
-            ))}
-            <div className="flex justify-end pt-4">
-              <button type="submit" className="px-8 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all">
-                Salvar Horários
-              </button>
-            </div>
-          </form>
+
+              <div className="bg-white p-8 rounded-xl shadow-lg">
+                <h2 className="text-2xl font-bold mb-6 text-gray-800">Configurações Ativas</h2>
+                
+                {configuracoesExistentes.length > 0 ? (
+                  <div className="space-y-4">
+                    {configuracoesExistentes.map(config => (
+                      <div key={config.id} className="border-2 border-gray-200 rounded-lg p-6 hover:border-primary-300 transition-all">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <h3 className="text-lg font-bold text-gray-800 mb-2">
+                              {config.especializacao?.nome || 'Especialização'}
+                            </h3>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                              <div>
+                                <span className="text-gray-500">Dias:</span>
+                                <p className="font-medium">
+                                  {config.dias_semana.map(d => diasSemana.find(dia => dia.value === d)?.label).join(', ')}
+                                </p>
+                              </div>
+                              <div>
+                                <span className="text-gray-500">Horário:</span>
+                                <p className="font-medium">{config.hora_inicio} - {config.hora_fim}</p>
+                              </div>
+                              <div>
+                                <span className="text-gray-500">Duração:</span>
+                                <p className="font-medium">{config.duracao_slot} min</p>
+                              </div>
+                              <div>
+                                <span className="text-gray-500">Almoço:</span>
+                                <p className="font-medium">
+                                  {config.intervalo_almoco 
+                                    ? `${config.hora_inicio_almoco} - ${config.hora_fim_almoco}` 
+                                    : 'Não'}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => {
+                              setConfiguracaoHorarios({
+                                ...config,
+                                data_inicio: config.data_inicio || '',
+                                data_fim: config.data_fim || ''
+                              });
+                              window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }}
+                            className="px-4 py-2 text-primary-600 hover:bg-primary-50 rounded-lg font-medium transition-all"
+                          >
+                            ✏️ Editar
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-gray-400">
+                    <Clock size={48} className="mx-auto mb-4 opacity-50" />
+                    <p className="text-lg">Nenhuma configuração cadastrada</p>
+                    <p className="text-sm mt-2">Configure os horários recorrentes acima</p>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* MODO: BLOQUEIOS */}
+          {modoHorarios === 'bloqueios' && (
+            <>
+              <div className="bg-gradient-to-br from-white to-red-50 p-8 rounded-xl shadow-lg border-2 border-red-100">
+                <div className="flex items-center gap-3 mb-6">
+                  <span className="text-3xl">🚫</span>
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-800">Bloquear Horários</h2>
+                    <p className="text-sm text-gray-600 mt-1">Para feriados, eventos ou bloqueios pontuais</p>
+                  </div>
+                </div>
+                
+                <form onSubmit={handleBloquearHorario} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Especialização *</label>
+                      <select
+                        value={novobloqueio.especializacao_id}
+                        onChange={e => setNovobloqueio({ ...novobloqueio, especializacao_id: e.target.value })}
+                        className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all outline-none"
+                        required
+                      >
+                        <option value="">Selecione...</option>
+                        {clinica.especializacoes?.map(esp => (
+                          <option key={esp.id} value={esp.id}>{esp.nome}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Data *</label>
+                      <input
+                        type="date"
+                        value={novobloqueio.data_excecao}
+                        onChange={e => setNovobloqueio({ ...novobloqueio, data_excecao: e.target.value })}
+                        className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all outline-none"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-6 rounded-lg border-2 border-gray-200">
+                    <label className="flex items-center gap-3 cursor-pointer mb-4">
+                      <input
+                        type="checkbox"
+                        checked={novobloqueio.dia_inteiro}
+                        onChange={e => setNovobloqueio({ ...novobloqueio, dia_inteiro: e.target.checked })}
+                        className="w-5 h-5 text-primary-600 rounded focus:ring-2 focus:ring-primary-200"
+                      />
+                      <span className="font-semibold text-gray-700">Bloquear dia inteiro</span>
+                    </label>
+                    
+                    {!novobloqueio.dia_inteiro && (
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-2">Horário Início</label>
+                          <input
+                            type="time"
+                            value={novobloqueio.hora_inicio}
+                            onChange={e => setNovobloqueio({ ...novobloqueio, hora_inicio: e.target.value })}
+                            className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all outline-none"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-2">Horário Fim</label>
+                          <input
+                            type="time"
+                            value={novobloqueio.hora_fim}
+                            onChange={e => setNovobloqueio({ ...novobloqueio, hora_fim: e.target.value })}
+                            className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all outline-none"
+                            required
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Tipo</label>
+                      <select
+                        value={novobloqueio.tipo}
+                        onChange={e => setNovobloqueio({ ...novobloqueio, tipo: e.target.value })}
+                        className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all outline-none"
+                      >
+                        <option value="bloqueio">Bloqueio</option>
+                        <option value="feriado">Feriado</option>
+                        <option value="evento">Evento</option>
+                        <option value="customizado">Customizado</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Motivo (opcional)</label>
+                      <input
+                        type="text"
+                        value={novobloqueio.motivo}
+                        onChange={e => setNovobloqueio({ ...novobloqueio, motivo: e.target.value })}
+                        className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all outline-none"
+                        placeholder="Ex: Natal, Reunião..."
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end pt-4">
+                    <button
+                      type="submit"
+                      className="px-8 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all"
+                    >
+                      Bloquear Horário
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              <div className="bg-white p-8 rounded-xl shadow-lg">
+                <h2 className="text-2xl font-bold mb-6 text-gray-800">Bloqueios Cadastrados</h2>
+                
+                {excecoesExistentes.length > 0 ? (
+                  <div className="space-y-3">
+                    {excecoesExistentes.map(excecao => (
+                      <div key={excecao.id} className="border-2 border-red-200 bg-red-50 rounded-lg p-4 flex justify-between items-center">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <span className="px-3 py-1 bg-red-200 text-red-800 rounded-full text-xs font-bold uppercase">
+                              {excecao.tipo}
+                            </span>
+                            <h3 className="font-bold text-gray-800">
+                              {excecao.especializacao?.nome || 'Especialização'}
+                            </h3>
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            <span className="font-medium">
+                              {new Date(excecao.data_excecao + 'T00:00:00').toLocaleDateString('pt-BR', { 
+                                day: '2-digit', 
+                                month: 'long', 
+                                year: 'numeric' 
+                              })}
+                            </span>
+                            {excecao.hora_inicio && excecao.hora_fim && (
+                              <span className="ml-2">• {excecao.hora_inicio} - {excecao.hora_fim}</span>
+                            )}
+                            {!excecao.hora_inicio && !excecao.hora_fim && (
+                              <span className="ml-2 text-red-600 font-medium">• Dia inteiro</span>
+                            )}
+                            {excecao.motivo && (
+                              <span className="ml-2">• {excecao.motivo}</span>
+                            )}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleRemoverExcecao(excecao.id)}
+                          className="px-8 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all"
+                        >
+                        Remover
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-gray-400">
+                    <span className="text-5xl mb-4 block">🚫</span>
+                    <p className="text-lg">Nenhum bloqueio cadastrado</p>
+                    <p className="text-sm mt-2">Use o formulário acima para bloquear horários</p>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </div>
       )}
 
@@ -446,7 +1065,7 @@ export default function ConfiguracaoClinica() {
               className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all outline-none file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
             />
           </div>
-          <p className="text-sm text-gray-500 mt-4">📌 Tamanho máximo: 5MB • Formatos: JPG, PNG, GIF, WEBP</p>
+          <p className="text-sm text-gray-500 mt-4"> Tamanho máximo: 5MB • Formatos: JPG, PNG, GIF, WEBP</p>
         </div>
       )}
     </div>

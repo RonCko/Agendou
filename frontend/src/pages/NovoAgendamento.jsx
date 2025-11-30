@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { clinicasAPI, agendamentosAPI } from '../services/api';
 import Alert from '../components/Alert';
 import Loading from '../components/Loading';
-import { DollarSign, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function NovoAgendamento() {
   const { clinicaId } = useParams();
@@ -20,9 +20,8 @@ export default function NovoAgendamento() {
     observacoes: ''
   });
   const [horariosDisponiveis, setHorariosDisponiveis] = useState([]);
-  const [horariosOcupados, setHorariosOcupados] = useState([]);
-  const [datasDisponiveis, setDatasDisponiveis] = useState(new Set());
-  const [carregandoDatas, setCarregandoDatas] = useState(false);
+  const [configuracaoHorarios, setConfiguracaoHorarios] = useState(null);
+  const [bloqueios, setBloqueios] = useState([]);
   const [mesSelecionado, setMesSelecionado] = useState(new Date());
 
   useEffect(() => {
@@ -31,9 +30,11 @@ export default function NovoAgendamento() {
 
   useEffect(() => {
     if (formData.especializacao_id) {
-      carregarDatasDisponiveis();
+      carregarConfiguracaoHorarios();
+      carregarBloqueios();
     } else {
-      setDatasDisponiveis(new Set());
+      setConfiguracaoHorarios(null);
+      setBloqueios([]);
     }
   }, [formData.especializacao_id]);
 
@@ -48,59 +49,39 @@ export default function NovoAgendamento() {
       const response = await clinicasAPI.buscarPorId(clinicaId);
       setClinica(response.data.clinica);
     } catch (error) {
+      console.error('Erro ao carregar clínica:', error);
       setError('Erro ao carregar clínica');
     } finally {
       setLoading(false);
     }
   };
 
-  const carregarDatasDisponiveis = async () => {
-    setCarregandoDatas(true);
+  const carregarConfiguracaoHorarios = async () => {
     try {
-      const diasDisponiveis = new Set();
-      const hoje = new Date();
-      
-      // Criar array de promessas para fazer requisições em paralelo
-      const promessas = [];
-      
-      for (let i = 0; i < 60; i++) {
-        const data = new Date(hoje);
-        data.setDate(data.getDate() + i);
-        
-        // Converter para string no formato YYYY-MM-DD usando o timezone local
-        const year = data.getFullYear();
-        const month = String(data.getMonth() + 1).padStart(2, '0');
-        const day = String(data.getDate()).padStart(2, '0');
-        const dataStr = `${year}-${month}-${day}`;
-        
-        // Criar promessa para cada dia
-        const promessa = agendamentosAPI.verificarDisponibilidade({
-          clinica_id: clinicaId,
-          especializacao_id: formData.especializacao_id,
-          data_agendamento: dataStr
-        }).then((response) => {
-          if (response.data.horariosDisponiveis && response.data.horariosDisponiveis.length > 0) {
-            return dataStr;
-          }
-          return null;
-        }).catch(() => null);
-        
-        promessas.push(promessa);
-      }
-      
-      // Aguardar todas as promessas
-      const resultados = await Promise.all(promessas);
-      
-      // Filtrar resultados nulos e adicionar ao Set
-      resultados.forEach(data => {
-        if (data) diasDisponiveis.add(data);
+      const response = await clinicasAPI.listarConfiguracoesHorarios(clinicaId, {
+        especializacao_id: formData.especializacao_id
       });
-      
-      setDatasDisponiveis(diasDisponiveis);
+      if (response.data.configuracoes && response.data.configuracoes.length > 0) {
+        setConfiguracaoHorarios(response.data.configuracoes[0]);
+      } else {
+        setConfiguracaoHorarios(null);
+      }
     } catch (error) {
-      console.error('Erro ao carregar datas disponíveis:', error);
-    } finally {
-      setCarregandoDatas(false);
+      console.error('Erro ao carregar configuração:', error);
+      setConfiguracaoHorarios(null);
+    }
+  };
+
+  const carregarBloqueios = async () => {
+    try {
+      const response = await clinicasAPI.listarExcecoes(clinicaId, {
+        especializacao_id: formData.especializacao_id
+      });
+      console.log('Bloqueios carregados:', response.data.excecoes);
+      setBloqueios(response.data.excecoes || []);
+    } catch (error) {
+      console.error('Erro ao carregar bloqueios:', error);
+      setBloqueios([]);
     }
   };
 
@@ -112,7 +93,6 @@ export default function NovoAgendamento() {
         data_agendamento: formData.data_agendamento
       });
       setHorariosDisponiveis(response.data.horariosDisponiveis || []);
-      setHorariosOcupados(response.data.horariosOcupados || []);
     } catch (error) {
       console.error('Erro ao verificar disponibilidade:', error);
       setHorariosDisponiveis([]);
@@ -177,12 +157,32 @@ export default function NovoAgendamento() {
   };
 
   const isDataDisponivel = (data) => {
-    // Converter a data para string no formato YYYY-MM-DD usando o timezone local
+    // Se não há configuração, considerar indisponível
+    if (!configuracaoHorarios) return false;
+    
+    // Verificar se o dia da semana está configurado
+    const diaSemana = data.getDay(); // 0 = Domingo, 1 = Segunda, ..., 6 = Sábado
+    if (!configuracaoHorarios.dias_semana.includes(diaSemana)) return false;
+    
+    // Verificar se há bloqueio para esta data
     const year = data.getFullYear();
     const month = String(data.getMonth() + 1).padStart(2, '0');
     const day = String(data.getDate()).padStart(2, '0');
     const dataStr = `${year}-${month}-${day}`;
-    return datasDisponiveis.has(dataStr);
+    
+    const temBloqueio = bloqueios.some(bloqueio => {
+      if (bloqueio.data_excecao !== dataStr) return false;
+      
+      // Verificar se é bloqueio de dia inteiro
+      const horaInicio = bloqueio.hora_inicio?.substring(0, 5); // Pega apenas HH:MM
+      const horaFim = bloqueio.hora_fim?.substring(0, 5); // Pega apenas HH:MM
+      const isDiaInteiro = (!horaInicio || horaInicio === '00:00') &&
+                           (!horaFim || horaFim === '23:59');
+      
+      return isDiaInteiro;
+    });
+    
+    return !temBloqueio;
   };
 
   const isDataPassada = (data) => {
@@ -200,6 +200,13 @@ export default function NovoAgendamento() {
   };
 
   const handleSelecionarDia = (data) => {
+    // Verificar se o dia é disponível
+    if (!isDataDisponivel(data)) {
+      setError('Esta clínica não atende neste dia da semana');
+      setTimeout(() => setError(''), 3000);
+      return;
+    }
+    
     // Converter para string no formato YYYY-MM-DD usando o timezone local
     const year = data.getFullYear();
     const month = String(data.getMonth() + 1).padStart(2, '0');
@@ -251,7 +258,6 @@ export default function NovoAgendamento() {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-4">
             Data *
-            {carregandoDatas && <span className="ml-2 text-blue-600">⏳ Verificando...</span>}
           </label>
           
           {formData.especializacao_id ? (
@@ -307,8 +313,8 @@ export default function NovoAgendamento() {
                     <button
                       key={idx}
                       type="button"
-                      onClick={() => !isPassada && handleSelecionarDia(data)}
-                      disabled={isPassada || (!carregandoDatas && !isDisponivel)}
+                      onClick={() => !isPassada && isDisponivel && handleSelecionarDia(data)}
+                      disabled={isPassada || !isDisponivel}
                       className={`
                         py-2 px-1 rounded-lg text-sm font-medium transition
                         ${isSelecionada ? 'bg-primary-600 text-white shadow-lg' : ''}
@@ -365,20 +371,23 @@ export default function NovoAgendamento() {
             </label>
             {horariosDisponiveis.length > 0 ? (
               <div className="grid grid-cols-4 gap-2">
-                {horariosDisponiveis.map((horario) => (
-                  <button
-                    key={horario}
-                    type="button"
-                    onClick={() => setFormData({ ...formData, hora_agendamento: horario })}
-                    className={`py-2 px-4 rounded-lg text-sm font-medium transition ${
-                      formData.hora_agendamento === horario
-                        ? 'bg-primary-600 text-white'
-                        : 'bg-green-100 hover:bg-green-200 text-green-700'
-                    }`}
-                  >
-                    {horario}
-                  </button>
-                ))}
+                {horariosDisponiveis.map((horario) => {
+                  const hora = typeof horario === 'string' ? horario : horario.hora_inicio;
+                  return (
+                    <button
+                      key={hora}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, hora_agendamento: hora })}
+                      className={`py-2 px-4 rounded-lg text-sm font-medium transition ${
+                        formData.hora_agendamento === hora
+                          ? 'bg-primary-600 text-white'
+                          : 'bg-green-100 hover:bg-green-200 text-green-700'
+                      }`}
+                    >
+                      {hora}
+                    </button>
+                  );
+                })}
               </div>
             ) : (
               <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-lg">
