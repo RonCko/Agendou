@@ -57,6 +57,34 @@ class DashboardController {
         }
       });
 
+      // Calcular receita estimada (agendamentos realizados)
+      const agendamentosRealizados = await Agendamento.findAll({
+        where: {
+          clinica_id: clinica.id,
+          status: 'realizado'
+        },
+        attributes: ['especializacao_id'],
+        raw: true
+      });
+
+      let receitaTotal = 0;
+      let agendamentosSemPreco = 0;
+      for (const agendamento of agendamentosRealizados) {
+        // Buscar preço da especialização na clínica
+        const clinicaEspec = await sequelize.models.ClinicaEspecializacao.findOne({
+          where: {
+            clinica_id: clinica.id,
+            especializacao_id: agendamento.especializacao_id
+          },
+          attributes: ['preco']
+        });
+        if (clinicaEspec && clinicaEspec.preco) {
+          receitaTotal += parseFloat(clinicaEspec.preco);
+        } else {
+          agendamentosSemPreco++;
+        }
+      }
+
       // Próximos agendamentos (5 próximos)
       const proximosAgendamentos = await Agendamento.findAll({
         where: {
@@ -115,7 +143,9 @@ class DashboardController {
           totalAgendamentos,
           agendamentosMes,
           agendamentosHoje,
-          agendamentosPorStatus: statusMap
+          agendamentosPorStatus: statusMap,
+          receitaTotal,
+          agendamentosSemPreco
         },
         proximosAgendamentos,
         agendamentosPorEspecializacao: agendamentosPorEspecializacao.map(a => ({

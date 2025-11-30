@@ -80,9 +80,14 @@ export default function DashboardClinica() {
           <h2 className="text-xl font-bold mb-4">Receita Estimada</h2>
           <p className="text-4xl font-bold text-green-600 mb-2 flex items-center gap-2">
             <DollarSign size={36} />
-            {parseFloat(resumo.receitaTotal || 0).toFixed(2)}
+            R$ {parseFloat(resumo.receitaTotal || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </p>
           <p className="text-sm text-gray-500">Total de agendamentos realizados</p>
+          {resumo.agendamentosSemPreco > 0 && (
+            <p className="text-xs text-amber-600 mt-2">
+              ⚠️ {resumo.agendamentosSemPreco} agendamento(s) sem preço cadastrado
+            </p>
+          )}
         </div>
       </div>
 
