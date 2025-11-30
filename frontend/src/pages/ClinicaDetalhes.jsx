@@ -9,10 +9,12 @@ export default function ClinicaDetalhes() {
   const { id } = useParams();
   const { isPaciente, isAuthenticated } = useAuth();
   const [clinica, setClinica] = useState(null);
+  const [configuracoes, setConfiguracoes] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     carregarClinica();
+    carregarConfiguracoes();
   }, [id]);
 
   const carregarClinica = async () => {
@@ -24,6 +26,46 @@ export default function ClinicaDetalhes() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const carregarConfiguracoes = async () => {
+    try {
+      const response = await clinicasAPI.listarConfiguracoesHorarios(id);
+      setConfiguracoes(response.data.configuracoes || []);
+    } catch (error) {
+      setConfiguracoes([]);
+    }
+  };
+
+  const formatTime = (timeStr) => {
+    if (!timeStr) return '--:--';
+    const hhmm = timeStr.substring(0, 5);
+    const [hh, mm] = hhmm.split(':');
+    return `${String(parseInt(hh, 10))}:${mm}`;
+  };
+
+  const formatDays = (days) => {
+    const names = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+    if (!days || days.length === 0) return 'Sem dias configurados';
+    const sorted = [...days].sort((a, b) => a - b);
+    const ranges = [];
+    let start = sorted[0];
+    let end = sorted[0];
+    for (let i = 1; i < sorted.length; i++) {
+      const d = sorted[i];
+      if (d === end + 1) {
+        end = d;
+      } else {
+        ranges.push([start, end]);
+        start = d;
+        end = d;
+      }
+    }
+    ranges.push([start, end]);
+
+    return ranges
+      .map(([s, e]) => (s === e ? names[s] : `${names[s]} a ${names[e]}`))
+      .join(', ');
   };
 
   if (loading) return <Loading />;
@@ -92,6 +134,31 @@ export default function ClinicaDetalhes() {
                       {parseFloat(esp.ClinicaEspecializacao.preco).toFixed(2)}
                     </div>
                   )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Horários de atendimento (configurações recorrentes) */}
+      {configuracoes && configuracoes.length > 0 && (
+        <div className="card mb-8">
+          <h2 className="text-2xl font-bold mb-6">Horários de Atendimento</h2>
+          <div className="space-y-4">
+            {configuracoes.map((c) => (
+              <div key={c.id} className="border rounded-lg p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="font-medium">{c.especializacao?.nome || 'Geral'}</div>
+                  <div className="text-sm text-gray-600">{formatDays(c.dias_semana)}</div>
+                </div>
+
+                <div className="flex items-center justify-end">
+                  <div className="text-gray-700 font-medium">
+                    {c.intervalo_almoco
+                      ? `${formatTime(c.hora_inicio)} - ${formatTime(c.hora_inicio_almoco)} / ${formatTime(c.hora_fim_almoco)} - ${formatTime(c.hora_fim)}`
+                      : `${formatTime(c.hora_inicio)} - ${formatTime(c.hora_fim)}`}
+                  </div>
                 </div>
               </div>
             ))}
