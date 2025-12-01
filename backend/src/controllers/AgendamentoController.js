@@ -158,7 +158,7 @@ class AgendamentoController {
           data_agendamento,
           hora_agendamento,
           status: {
-            [Op.notIn]: ['cancelado'] // Ignorar agendamentos cancelados
+            [Op.notIn]: ['cancelado', 'faltou'] // Ignorar agendamentos cancelados
           }
         }
       });
