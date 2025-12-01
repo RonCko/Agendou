@@ -1,34 +1,34 @@
 -- SQL gerado pelo supabase, a ordem de geração das tabelas pode ser diferente e causar erros se somente copiar e colar no sql editor.
 
-CREATE TABLE public.agendamentos (
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+CREATE TABLE public.usuarios (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
-  paciente_id uuid NOT NULL,
-  clinica_id uuid NOT NULL,
-  especializacao_id uuid NOT NULL,
-  data_agendamento date NOT NULL,
-  hora_agendamento time without time zone NOT NULL,
-  medico_nome character varying,
-  status character varying DEFAULT 'pendente'::character varying CHECK (status::text = ANY (ARRAY['pendente'::character varying, 'confirmado'::character varying, 'cancelado'::character varying, 'realizado'::character varying]::text[])),
-  observacoes text,
+  nome character varying NOT NULL,
+  email character varying NOT NULL UNIQUE,
+  senha character varying NOT NULL,
+  telefone character varying,
+  tipo character varying NOT NULL CHECK (tipo::text = ANY (ARRAY['paciente'::character varying, 'clinica'::character varying, 'admin'::character varying]::text[])),
+  ativo boolean DEFAULT true,
+  foto_perfil text,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
-  CONSTRAINT agendamentos_pkey PRIMARY KEY (id),
-  CONSTRAINT agendamentos_paciente_id_fkey FOREIGN KEY (paciente_id) REFERENCES public.pacientes(id),
-  CONSTRAINT agendamentos_clinica_id_fkey FOREIGN KEY (clinica_id) REFERENCES public.clinicas(id),
-  CONSTRAINT agendamentos_especializacao_id_fkey FOREIGN KEY (especializacao_id) REFERENCES public.especializacoes(id)
+  CONSTRAINT usuarios_pkey PRIMARY KEY (id)
 );
-CREATE TABLE public.clinica_especializacoes (
+
+CREATE TABLE public.pacientes (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
-  clinica_id uuid NOT NULL,
-  especializacao_id uuid NOT NULL,
-  preco numeric,
-  duracao_minutos integer DEFAULT 30,
-  ativo boolean DEFAULT true,
+  usuario_id uuid NOT NULL UNIQUE,
+  cpf character varying NOT NULL UNIQUE,
+  data_nascimento date NOT NULL,
+  endereco text,
   created_at timestamp with time zone DEFAULT now(),
-  CONSTRAINT clinica_especializacoes_pkey PRIMARY KEY (id),
-  CONSTRAINT clinica_especializacoes_clinica_id_fkey FOREIGN KEY (clinica_id) REFERENCES public.clinicas(id),
-  CONSTRAINT clinica_especializacoes_especializacao_id_fkey FOREIGN KEY (especializacao_id) REFERENCES public.especializacoes(id)
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT pacientes_pkey PRIMARY KEY (id),
+  CONSTRAINT pacientes_usuario_id_fkey FOREIGN KEY (usuario_id) REFERENCES public.usuarios(id)
 );
+
 CREATE TABLE public.clinicas (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   usuario_id uuid NOT NULL UNIQUE,
@@ -47,6 +47,29 @@ CREATE TABLE public.clinicas (
   CONSTRAINT clinicas_pkey PRIMARY KEY (id),
   CONSTRAINT clinicas_usuario_id_fkey FOREIGN KEY (usuario_id) REFERENCES public.usuarios(id)
 );
+
+CREATE TABLE public.especializacoes (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  nome character varying NOT NULL UNIQUE,
+  descricao text,
+  ativo boolean DEFAULT true,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT especializacoes_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE public.clinica_especializacoes (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  clinica_id uuid NOT NULL,
+  especializacao_id uuid NOT NULL,
+  preco numeric,
+  duracao_minutos integer DEFAULT 30,
+  ativo boolean DEFAULT true,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT clinica_especializacoes_pkey PRIMARY KEY (id),
+  CONSTRAINT clinica_especializacoes_clinica_id_fkey FOREIGN KEY (clinica_id) REFERENCES public.clinicas(id),
+  CONSTRAINT clinica_especializacoes_especializacao_id_fkey FOREIGN KEY (especializacao_id) REFERENCES public.especializacoes(id)
+);
+
 CREATE TABLE public.configuracao_horarios (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   clinica_id uuid NOT NULL,
@@ -67,14 +90,7 @@ CREATE TABLE public.configuracao_horarios (
   CONSTRAINT configuracao_horarios_clinica_id_fkey FOREIGN KEY (clinica_id) REFERENCES public.clinicas(id),
   CONSTRAINT configuracao_horarios_especializacao_id_fkey FOREIGN KEY (especializacao_id) REFERENCES public.especializacoes(id)
 );
-CREATE TABLE public.especializacoes (
-  id uuid NOT NULL DEFAULT gen_random_uuid(),
-  nome character varying NOT NULL UNIQUE,
-  descricao text,
-  ativo boolean DEFAULT true,
-  created_at timestamp with time zone DEFAULT now(),
-  CONSTRAINT especializacoes_pkey PRIMARY KEY (id)
-);
+
 CREATE TABLE public.horarios_atendimento (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   clinica_id uuid NOT NULL,
@@ -89,6 +105,7 @@ CREATE TABLE public.horarios_atendimento (
   CONSTRAINT horarios_atendimento_clinica_id_fkey FOREIGN KEY (clinica_id) REFERENCES public.clinicas(id),
   CONSTRAINT horarios_atendimento_especializacao_id_fkey FOREIGN KEY (especializacao_id) REFERENCES public.especializacoes(id)
 );
+
 CREATE TABLE public.horarios_excecoes (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   clinica_id uuid NOT NULL,
@@ -104,31 +121,69 @@ CREATE TABLE public.horarios_excecoes (
   CONSTRAINT horarios_excecoes_clinica_id_fkey FOREIGN KEY (clinica_id) REFERENCES public.clinicas(id),
   CONSTRAINT horarios_excecoes_especializacao_id_fkey FOREIGN KEY (especializacao_id) REFERENCES public.especializacoes(id)
 );
-CREATE TABLE public.pacientes (
+
+CREATE TABLE public.agendamentos (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
-  usuario_id uuid NOT NULL UNIQUE,
-  cpf character varying NOT NULL UNIQUE,
-  data_nascimento date NOT NULL,
-  endereco text,
+  paciente_id uuid NOT NULL,
+  clinica_id uuid NOT NULL,
+  especializacao_id uuid NOT NULL,
+  data_agendamento date NOT NULL,
+  hora_agendamento time without time zone NOT NULL,
+  medico_nome character varying,
+  status character varying DEFAULT 'pendente'::character varying CHECK (status::text = ANY (ARRAY['pendente'::character varying, 'confirmado'::character varying, 'cancelado'::character varying, 'realizado'::character varying]::text[])),
+  observacoes text,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
-  CONSTRAINT pacientes_pkey PRIMARY KEY (id),
-  CONSTRAINT pacientes_usuario_id_fkey FOREIGN KEY (usuario_id) REFERENCES public.usuarios(id)
-);
-CREATE TABLE public.usuarios (
-  id uuid NOT NULL DEFAULT gen_random_uuid(),
-  nome character varying NOT NULL,
-  email character varying NOT NULL UNIQUE,
-  senha character varying NOT NULL,
-  telefone character varying,
-  tipo character varying NOT NULL CHECK (tipo::text = ANY (ARRAY['paciente'::character varying, 'clinica'::character varying, 'admin'::character varying]::text[])),
-  ativo boolean DEFAULT true,
-  foto_perfil text,
-  created_at timestamp with time zone DEFAULT now(),
-  updated_at timestamp with time zone DEFAULT now(),
-  CONSTRAINT usuarios_pkey PRIMARY KEY (id)
+  CONSTRAINT agendamentos_pkey PRIMARY KEY (id),
+  CONSTRAINT agendamentos_paciente_id_fkey FOREIGN KEY (paciente_id) REFERENCES public.pacientes(id),
+  CONSTRAINT agendamentos_clinica_id_fkey FOREIGN KEY (clinica_id) REFERENCES public.clinicas(id),
+  CONSTRAINT agendamentos_especializacao_id_fkey FOREIGN KEY (especializacao_id) REFERENCES public.especializacoes(id)
 );
 
+CREATE TABLE public.avaliacoes (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  clinica_id uuid NOT NULL,
+  paciente_id uuid NOT NULL,
+  nota smallint NOT NULL CHECK (nota >= 1 AND nota <= 5),
+  comentario text,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT avaliacoes_pkey PRIMARY KEY (id),
+  CONSTRAINT avaliacoes_clinica_id_fkey FOREIGN KEY (clinica_id) REFERENCES public.clinicas(id),
+  CONSTRAINT avaliacoes_paciente_id_fkey FOREIGN KEY (paciente_id) REFERENCES public.pacientes(id),
+  CONSTRAINT avaliacoes_unique UNIQUE (clinica_id, paciente_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_pacientes_usuario_id ON public.pacientes(usuario_id);
+CREATE INDEX IF NOT EXISTS idx_clinicas_usuario_id ON public.clinicas(usuario_id);
+CREATE INDEX IF NOT EXISTS idx_clinicas_cidade ON public.clinicas(cidade);
+CREATE INDEX IF NOT EXISTS idx_agendamentos_paciente_id ON public.agendamentos(paciente_id);
+CREATE INDEX IF NOT EXISTS idx_agendamentos_clinica_id ON public.agendamentos(clinica_id);
+CREATE INDEX IF NOT EXISTS idx_agendamentos_data ON public.agendamentos(data_agendamento);
+CREATE INDEX IF NOT EXISTS idx_avaliacoes_clinica_id ON public.avaliacoes(clinica_id);
+CREATE INDEX IF NOT EXISTS idx_avaliacoes_paciente_id ON public.avaliacoes(paciente_id);
+
+COMMENT ON TABLE public.usuarios IS 'Usuários do sistema (pacientes, clínicas, admin)';
+COMMENT ON TABLE public.pacientes IS 'Dados específicos de pacientes (1:1 com usuarios)';
+COMMENT ON TABLE public.clinicas IS 'Dados específicos de clínicas (1:1 com usuarios)';
+COMMENT ON TABLE public.especializacoes IS 'Catálogo de especializações médicas';
+COMMENT ON TABLE public.clinica_especializacoes IS 'Relacionamento N:N entre clinicas e especializacoes';
+COMMENT ON TABLE public.configuracao_horarios IS 'Configuração recorrente de horários de atendimento';
+COMMENT ON TABLE public.horarios_atendimento IS 'Slots específicos de horários (sistema antigo)';
+COMMENT ON TABLE public.horarios_excecoes IS 'Bloqueios e exceções nos horários';
+COMMENT ON TABLE public.agendamentos IS 'Agendamentos de consultas';
+COMMENT ON TABLE public.avaliacoes IS 'Avaliações de pacientes sobre clínicas';
+
+INSERT INTO public.especializacoes (nome, descricao) VALUES
+  ('Cardiologia', 'Especialidade médica que se dedica ao estudo do coração'),
+  ('Dermatologia', 'Especialidade médica que se dedica ao estudo da pele'),
+  ('Pediatria', 'Especialidade médica que se dedica à saúde de crianças'),
+  ('Ortopedia', 'Especialidade médica que se dedica ao sistema musculoesquelético'),
+  ('Ginecologia', 'Especialidade médica que se dedica à saúde da mulher'),
+  ('Oftalmologia', 'Especialidade médica que se dedica aos olhos'),
+  ('Psiquiatria', 'Especialidade médica que se dedica à saúde mental'),
+  ('Odontologia', 'Especialidade médica que se dedica à saúde bucal')
+ON CONFLICT (nome) DO NOTHING;
 
 --*** Relações entre tabelas ***
 
