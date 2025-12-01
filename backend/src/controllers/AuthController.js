@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import config from '../config/config.js';
 import { Usuario, Paciente, Clinica } from '../models/index.js';
+import { cpf as validarCPF, cnpj as validarCNPJ } from 'cpf-cnpj-validator'
 
 class AuthController {
   // Registro de novo usuário
@@ -11,23 +12,31 @@ class AuthController {
 
       // Validações básicas
       if (!nome || !email || !senha || !tipo) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           erro: 'Campos obrigatórios faltando',
           mensagem: 'Nome, email, senha e tipo são obrigatórios'
         });
       }
 
       if (!['paciente', 'clinica', 'admin'].includes(tipo)) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           erro: 'Tipo de usuário inválido',
           mensagem: 'Tipo deve ser: paciente, clinica ou admin'
+        });
+      }
+
+      // VALIDAR SENHA
+      if (senha.length < 6 || !/[a-zA-Z]/.test(senha) || !/[0-9]/.test(senha)) {
+        return res.status(400).json({
+          erro: 'Senha fraca',
+          mensagem: 'A senha deve ter no mínimo 6 caracteres, incluindo letras e números'
         });
       }
 
       // Verificar se já existe usuário com esse email
       const usuarioExistente = await Usuario.findOne({ where: { email } });
       if (usuarioExistente) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           erro: 'Email já cadastrado',
           mensagem: 'Este email já está em uso'
         });
@@ -49,12 +58,20 @@ class AuthController {
       // Se for paciente, criar registro de paciente
       if (tipo === 'paciente') {
         const { cpf, data_nascimento, endereco } = dadosExtras;
-        
+
         if (!cpf || !data_nascimento) {
           await usuario.destroy();
-          return res.status(400).json({ 
+          return res.status(400).json({
             erro: 'Dados incompletos',
             mensagem: 'CPF e data de nascimento são obrigatórios para pacientes'
+          });
+        }
+
+        if (!validarCPF.isValid(cpf)) {
+          await usuario.destroy();
+          return res.status(400).json({
+            erro: 'CPF inválido',
+            mensagem: 'O CPF fornecido não é válido'
           });
         }
 
@@ -75,6 +92,14 @@ class AuthController {
           return res.status(400).json({ 
             erro: 'Dados incompletos',
             mensagem: 'CNPJ, nome fantasia, endereço, cidade e estado são obrigatórios para clínicas'
+          });
+        }
+
+        if (!validarCNPJ.isValid(cnpj)) {
+          await usuario.destroy();
+          return res.status(400).json({
+            erro: 'CNPJ inválido',
+            mensagem: 'O CNPJ fornecido não é válido'
           });
         }
 
