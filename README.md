@@ -2,7 +2,7 @@
 
 Sistema completo de agendamento de consultas médicas desenvolvido com **React**, **Node.js**, **Express**, **Sequelize** e **PostgreSQL (Supabase)**.
 
-## 📘 Documentação da API com Swagger
+## Documentação da API com Swagger
 
 **Acesse a documentação interativa:** http://localhost:3333/api-docs (após iniciar o backend)
 
@@ -72,17 +72,17 @@ npm run dev
 - **Regra de negócio**: Bloqueio de horários duplicados
 - Gerenciamento de status (pendente, confirmado, realizado, cancelado)
 
-### ✅ **1. Configuração da Clínica** 🆕
+### ✅ **1. Configuração da Clínica** 
 - Painel completo de configurações
 - Adicionar/remover especializações com preço
 - Configurar horários de atendimento
 - Upload de foto de capa
 
-### ✅ **2. Upload de Fotos** 🆕
+### ✅ **2. Upload de Fotos** 
 - Upload de foto de capa (clínicas)
 - Validação: apenas imagens até 5MB
 
-### ✅ **3. Dashboard com Estatísticas** 🆕
+### ✅ **3. Dashboard com Estatísticas** 
 - **Dashboard Clínica**:
   - Total de agendamentos, receita estimada
   - Gráfico de status dos agendamentos
@@ -91,7 +91,7 @@ npm run dev
   - Próximos agendamentos
   
 
-### ✅ **4. Filtros Avançados** 🆕
+### ✅ **4. Filtros Avançados** 
 - Busca por nome/descrição
 - Filtro por cidade e estado
 - Filtro por especialização
@@ -128,7 +128,7 @@ npm run dev
 
 ---
 
-## 📁 Estrutura do Projeto
+## Estrutura do Projeto
 
 ```
 Agendou/
@@ -162,7 +162,7 @@ Agendou/
 
 ---
 
-## 📊 Banco de Dados
+## Banco de Dados
 
 ### Tabelas Principais
 
@@ -187,7 +187,7 @@ Agendou/
 
 ---
 
-## 🔐 Autenticação e Autorização
+## Autenticação e Autorização
 
 ### Sistema Dual
 - **JWT** para API (Bearer Token)
@@ -203,7 +203,7 @@ Agendou/
 
 ---
 
-## 🌐 Endpoints da API
+## Endpoints da API
 
 ### Autenticação
 ```
@@ -233,7 +233,7 @@ DELETE /api/agendamentos/:id           # Cancelar
 GET    /api/agendamentos/disponibilidade
 ```
 
-### Upload 🆕
+### Upload
 ```
 POST   /api/upload/perfil              # Foto de perfil
 POST   /api/upload/clinica/:id/capa    # Foto de capa
@@ -242,7 +242,7 @@ DELETE /api/upload/clinica/:id/galeria # Remover foto
 
 ---
 
-## 🎨 Frontend - Páginas
+## Frontend - Páginas
 
 | Rota | Página | Acesso |
 |------|--------|--------|
@@ -277,7 +277,7 @@ DELETE /api/upload/clinica/:id/galeria # Remover foto
 4. Faça um agendamento
 ```
 
-### 3. Testar Filtros 🆕
+### 3. Testar Filtros
 ```
 1. Acesse /clinicas
 2. Use os filtros:
@@ -289,7 +289,7 @@ DELETE /api/upload/clinica/:id/galeria # Remover foto
 3. Clique em "Buscar"
 ```
 
-### 4. Ver Dashboard 🆕
+### 4. Ver Dashboard
 ```
 # Como Clínica:
 - /dashboard-clinica → Estatísticas completas
@@ -305,7 +305,7 @@ DELETE /api/upload/clinica/:id/galeria # Remover foto
 - ✅ Apenas pacientes podem agendar
 - ✅ Clínicas podem confirmar/cancelar/marcar como realizado
 
-### 3. Upload de Fotos 🆕
+### 3. Upload de Fotos
 - ✅ Apenas imagens (jpg, png, gif, webp)
 - ✅ Tamanho máximo: 5MB
 - ✅ Nomes únicos (evita sobrescrita)
@@ -359,7 +359,7 @@ Este projeto está sob a licença MIT.
 
 ---
 
-## 🎉 Status do Projeto
+## Status do Projeto
 
 ✅ **100% Funcional**
 
