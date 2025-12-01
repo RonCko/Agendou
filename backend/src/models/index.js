@@ -8,6 +8,7 @@ import HorarioAtendimento from './HorarioAtendimento.js';
 import ConfiguracaoHorario from './ConfiguracaoHorario.js';
 import HorarioExcecao from './HorarioExcecao.js';
 import Agendamento from './Agendamento.js';
+import Avaliacao from './Avaliacao.js';
 
 // ========================================
 // RELACIONAMENTOS
@@ -163,6 +164,28 @@ Agendamento.belongsTo(Especializacao, {
   as: 'especializacao'
 });
 
+// Clinica -> Avaliacao (1:N)
+Clinica.hasMany(Avaliacao, {
+  foreignKey: 'clinica_id',
+  as: 'avaliacoes',
+  onDelete: 'CASCADE'
+});
+Avaliacao.belongsTo(Clinica, {
+  foreignKey: 'clinica_id',
+  as: 'clinica'
+});
+
+// Paciente -> Avaliacao (1:N)
+Paciente.hasMany(Avaliacao, {
+  foreignKey: 'paciente_id',
+  as: 'avaliacoes',
+  onDelete: 'CASCADE'
+});
+Avaliacao.belongsTo(Paciente, {
+  foreignKey: 'paciente_id',
+  as: 'paciente'
+});
+
 // ========================================
 // EXPORTAR MODELOS
 // ========================================
@@ -177,7 +200,8 @@ export {
   HorarioAtendimento,
   ConfiguracaoHorario,
   HorarioExcecao,
-  Agendamento
+  Agendamento,
+  Avaliacao 
 };
 
 export default {
@@ -190,5 +214,6 @@ export default {
   HorarioAtendimento,
   ConfiguracaoHorario,
   HorarioExcecao,
-  Agendamento
+  Agendamento,
+  Avaliacao 
 };
