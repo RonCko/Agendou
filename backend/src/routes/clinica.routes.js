@@ -578,7 +578,22 @@ const router = express.Router();
  *                   type: string
  *                   example: Exceção removida com sucesso
  */
+
+// Rotas de clínicas
 router.get('/', ClinicaController.listar);
+router.get('/:id', ClinicaController.buscarPorId);
+router.put('/:id', verificarToken, eClinicaOuAdmin, ClinicaController.atualizar);
+
+// Rotas de especializações da clínica
+router.post('/:id/especializacoes', verificarToken, eClinicaOuAdmin, ClinicaController.adicionarEspecializacao);
+router.delete('/:id/especializacoes/:especializacao_id', verificarToken, eClinicaOuAdmin, ClinicaController.removerEspecializacao);
+
+// Rotas de horários
+router.post('/:id/horarios/configurar', verificarToken, eClinicaOuAdmin, ClinicaController.configurarHorariosRecorrentes);
+router.get('/:id/horarios/configuracoes', verificarToken, ClinicaController.listarConfiguracoesHorarios);
+router.post('/:id/horarios/bloquear', verificarToken, eClinicaOuAdmin, ClinicaController.bloquearHorarios);
+router.get('/:id/horarios/excecoes', verificarToken, ClinicaController.listarExcecoes);
+router.delete('/:id/horarios/excecoes/:excecao_id', verificarToken, eClinicaOuAdmin, ClinicaController.removerExcecao);
 
 /**
  * @swagger
