@@ -5,6 +5,7 @@ import agendamentoRoutes from './agendamento.routes.js';
 import especializacaoRoutes from './especializacao.routes.js';
 import uploadRoutes from './upload.routes.js';
 import dashboardRoutes from './dashboard.routes.js';
+import avaliacaoRoutes from './avaliacao.routes.js';
 
 const router = express.Router();
 
@@ -31,5 +32,6 @@ router.use('/agendamentos', agendamentoRoutes);
 router.use('/especializacoes', especializacaoRoutes);
 router.use('/upload', uploadRoutes);
 router.use('/dashboard', dashboardRoutes);
+router.use('/avaliacoes', avaliacaoRoutes);
 
 export default router;
