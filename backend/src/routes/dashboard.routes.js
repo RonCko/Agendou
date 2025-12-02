@@ -1,6 +1,6 @@
 import express from 'express';
 import DashboardController from '../controllers/DashboardController.js';
-import { verificarToken, estaLogado, eClinica } from '../middlewares/auth.js';
+import { verificarToken, eClinica } from '../middlewares/auth.js';
 
 const router = express.Router();
 

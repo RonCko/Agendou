@@ -1,6 +1,6 @@
 import express from 'express';
 import AuthController from '../controllers/AuthController.js';
-import { verificarToken, estaLogado } from '../middlewares/auth.js';
+import { verificarToken } from '../middlewares/auth.js';
 
 const router = express.Router();
 
@@ -289,7 +289,7 @@ router.post('/login', AuthController.login);
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
  */
-router.post('/logout', estaLogado, AuthController.logout);
+router.post('/logout', verificarToken, AuthController.logout);
 
 /**
  * @swagger

@@ -195,7 +195,6 @@ Agendou/
 
 ### Middlewares
 - `verificarToken`: Valida JWT
-- `estaLogado`: Verifica sessão
 - `ePaciente`: Apenas pacientes
 - `eClinica`: Apenas clínicas
 

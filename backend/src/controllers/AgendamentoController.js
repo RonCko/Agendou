@@ -149,19 +149,6 @@ class AgendamentoController {
       // REGRA DE NEGÓCIO: Verificar se já existe agendamento no mesmo horário
       // ========================================
       
-      // Debug: Buscar TODOS os agendamentos nesse horário para verificar
-      const todosAgendamentos = await Agendamento.findAll({
-        where: {
-          clinica_id,
-          especializacao_id,
-          data_agendamento,
-          hora_agendamento
-        },
-        attributes: ['id', 'status']
-      });
-
-      console.log('Todos os agendamentos neste horário:', todosAgendamentos.map(a => ({ id: a.id, status: a.status })));
-
       const agendamentoExistente = await Agendamento.findOne({
         where: {
           clinica_id,
@@ -173,11 +160,6 @@ class AgendamentoController {
           }
         }
       });
-
-      console.log('Agendamento conflitante encontrado:', agendamentoExistente ? {
-        id: agendamentoExistente.id,
-        status: agendamentoExistente.status
-      } : 'nenhum');
 
       if (agendamentoExistente) {
         return res.status(409).json({ 

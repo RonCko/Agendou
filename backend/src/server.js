@@ -27,15 +27,7 @@ async function iniciarServidor() {
       if (PORT == 3333) {
         console.log(` Documentação Swagger: http://localhost:${PORT}/api-docs`);
       }
-      console.log(` Ambiente: ${config.server.env}`);
-      console.log(`\n Rotas disponíveis:`);
-      console.log(`   POST   /api/auth/registrar`);
-      console.log(`   POST   /api/auth/login`);
-      console.log(`   GET    /api/clinicas`);
-      console.log(`   GET    /api/especializacoes`);
-      console.log(`   GET    /api/agendamentos`);
-      console.log(`   POST   /api/agendamentos`);
-      console.log(`\n Use JWT Bearer Token para rotas protegidas\n`);
+
     });
   } catch (error) {
     console.error(' Erro ao iniciar servidor:', error);

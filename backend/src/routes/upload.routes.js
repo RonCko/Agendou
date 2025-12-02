@@ -1,7 +1,7 @@
 import express from 'express';
 import UploadController from '../controllers/UploadController.js';
 import upload from '../config/upload.js';
-import { verificarToken, estaLogado, eClinica } from '../middlewares/auth.js';
+import { verificarToken, eClinica } from '../middlewares/auth.js';
 
 const router = express.Router();
 
@@ -59,7 +59,7 @@ const router = express.Router();
  *       403:
  *         $ref: '#/components/responses/ForbiddenError'
  */
-router.post('/clinica/:id/capa', [verificarToken, estaLogado, eClinica], upload.single('foto'), UploadController.uploadFotoCapa);
+router.post('/clinica/:id/capa', [verificarToken, eClinica], upload.single('foto'), UploadController.uploadFotoCapa);
 
 /**
  * @swagger
@@ -156,7 +156,7 @@ router.get('/clinica/:id/capa', UploadController.buscarFotoCapa);
  *       404:
  *         $ref: '#/components/responses/NotFoundError'
  */
-router.post('/clinica/:id/capa', [verificarToken, estaLogado, eClinica], upload.single('foto'), UploadController.uploadFotoCapa);
+router.post('/clinica/:id/capa', [verificarToken, eClinica], upload.single('foto'), UploadController.uploadFotoCapa);
 
 /**
  * @swagger
@@ -253,7 +253,7 @@ router.get('/clinica/:id/capa', UploadController.buscarFotoCapa);
  *       404:
  *         $ref: '#/components/responses/NotFoundError'
  */
-router.put('/clinica/:id/capa', [verificarToken, estaLogado, eClinica], upload.single('foto'), UploadController.atualizarFotoCapa);
+router.put('/clinica/:id/capa', [verificarToken, eClinica], upload.single('foto'), UploadController.atualizarFotoCapa);
 
 /**
  * @swagger
@@ -294,6 +294,6 @@ router.put('/clinica/:id/capa', [verificarToken, estaLogado, eClinica], upload.s
  *       404:
  *         $ref: '#/components/responses/NotFoundError'
  */
-router.delete('/clinica/:id/capa', [verificarToken, estaLogado, eClinica], UploadController.removerFotoCapa);
+router.delete('/clinica/:id/capa', [verificarToken, eClinica], UploadController.removerFotoCapa);
 
 export default router;
