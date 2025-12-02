@@ -58,24 +58,6 @@ router.post('/', verificarToken, ePaciente, AvaliacaoController.criar);
  */
 router.get('/clinica/:clinica_id', AvaliacaoController.listarPorClinica);
 
-/**
- * @swagger
- * /api/avaliacoes/clinica/{clinica_id}/estatisticas:
- *   get:
- *     summary: Estatísticas de avaliações da clínica
- *     tags: [Avaliações]
- *     parameters:
- *       - in: path
- *         name: clinica_id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *     responses:
- *       200:
- *         description: Estatísticas calculadas
- */
-router.get('/clinica/:clinica_id/estatisticas', AvaliacaoController.estatisticas);
 
 /**
  * @swagger

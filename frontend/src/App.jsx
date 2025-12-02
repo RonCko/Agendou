@@ -12,6 +12,7 @@ import PainelClinica from './pages/PainelClinica'
 import NovoAgendamento from './pages/NovoAgendamento'
 import ConfiguracaoClinica from './pages/ConfiguracaoClinica'
 import DashboardClinica from './pages/DashboardClinica'
+import ConfiguracoesPerfil from './pages/ConfiguracoesPerfil'
 
 // Components
 import Navbar from './components/Navbar'
@@ -70,6 +71,16 @@ function App() {
               element={
                 <ProtectedRoute allowedTypes={['clinica']}>
                   <DashboardClinica />
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* Rotas protegidas - Ambos */}
+            <Route 
+              path="/configuracoes-perfil" 
+              element={
+                <ProtectedRoute allowedTypes={['paciente', 'clinica']}>
+                  <ConfiguracoesPerfil />
                 </ProtectedRoute>
               } 
             />

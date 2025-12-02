@@ -54,6 +54,12 @@ export default function Navbar() {
           <div className="flex items-center space-x-2 sm:space-x-4">
             {isAuthenticated ? (
               <>
+                <Link 
+                  to="/configuracoes-perfil"
+                  className="text-gray-700 hover:text-primary-600 text-sm font-medium hidden md:block"
+                >
+                  Perfil
+                </Link>
                 <div className="text-sm hidden sm:block">
                   <p className="text-gray-700 font-medium">{user.nome}</p>
                   <p className="text-gray-500 text-xs capitalize">{user.tipo}</p>
@@ -135,10 +141,19 @@ export default function Navbar() {
               </>
             )}
             {isAuthenticated && (
-              <div className="sm:hidden px-3 py-2 border-t border-gray-200 mt-2 pt-2">
-                <p className="text-gray-700 font-medium">{user.nome}</p>
-                <p className="text-gray-500 text-sm capitalize">{user.tipo}</p>
-              </div>
+              <>
+                <Link 
+                  to="/configuracoes-perfil" 
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-gray-50"
+                >
+                  Configurações do Perfil
+                </Link>
+                <div className="sm:hidden px-3 py-2 border-t border-gray-200 mt-2 pt-2">
+                  <p className="text-gray-700 font-medium">{user.nome}</p>
+                  <p className="text-gray-500 text-sm capitalize">{user.tipo}</p>
+                </div>
+              </>
             )}
           </div>
         </div>

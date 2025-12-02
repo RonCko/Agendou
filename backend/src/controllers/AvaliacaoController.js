@@ -2,7 +2,7 @@ import { Avaliacao, Paciente, Clinica, Usuario } from '../models/index.js';
 import { Op } from 'sequelize';
 
 /**
- * Controlador de avaliações com 5 ações: criar, listarPorClinica, estatisticas, atualizar, deletar.
+ * Controlador de avaliações com 4 ações: criar, listarPorClinica, atualizar, deletar.
  * Usa modelos Sequelize: Avaliacao, Paciente, Clinica; inclui relacionamentos para retornar dados do paciente/usuário e clínica.
  *
  * @class AvaliacaoController
@@ -139,50 +139,6 @@ class AvaliacaoController {
     } catch (error) {
       console.error('Erro ao listar avaliações:', error);
       return res.status(500).json({ erro: 'Erro ao listar avaliações' });
-    }
-  }
-
-  /**
-   * Entrada: clinica_id.
-   * Validações: campos obrigatórios.
-   * Verifica existência clínica.
-   * Calcula estatísticas: total, média, distribuição (1-5).
-   * Retorna estatísticas; captura erros.
-   * GET /api/avaliacoes/clinica/:clinica_id/estatisticas
-   */
-  async estatisticas(req, res) {
-    try {
-      const { clinica_id } = req.params;
-
-      const avaliacoes = await Avaliacao.findAll({
-        where: { clinica_id },
-        attributes: ['nota']
-      });
-
-      if (avaliacoes.length === 0) {
-        return res.status(200).json({
-          total: 0,
-          media: 0,
-          distribuicao: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
-        });
-      }
-
-      const soma = avaliacoes.reduce((acc, av) => acc + av.nota, 0);
-      const media = soma / avaliacoes.length;
-
-      const distribuicao = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
-      avaliacoes.forEach(av => {
-        distribuicao[av.nota]++;
-      });
-
-      return res.status(200).json({
-        total: avaliacoes.length,
-        media: parseFloat(media.toFixed(2)),
-        distribuicao
-      });
-    } catch (error) {
-      console.error('Erro ao buscar estatísticas:', error);
-      return res.status(500).json({ erro: 'Erro ao buscar estatísticas' });
     }
   }
 

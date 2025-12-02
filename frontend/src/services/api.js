@@ -40,8 +40,7 @@ export const authAPI = {
   register: (data) => api.post('/auth/registrar', data),
   login: (data) => api.post('/auth/login', data),
   logout: () => api.post('/auth/logout'),
-  getPerfil: () => api.get('/auth/perfil'),
-  updatePerfil: (data) => api.put('/auth/perfil', data)
+  getPerfil: () => api.get('/auth/perfil')
 };
 
 // Clínicas
@@ -76,18 +75,14 @@ export const especializacoesAPI = {
 
 // Upload
 export const uploadAPI = {
-  fotoPerfil: (formData) => api.post('/upload/perfil', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  }),
   fotoCapa: (clinicaId, formData) => api.post(`/upload/clinica/${clinicaId}/capa`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   }),
-  galeria: (clinicaId, formData) => api.post(`/upload/clinica/${clinicaId}/galeria`, formData, {
+  buscarFotoCapa: (clinicaId) => api.get(`/upload/clinica/${clinicaId}/capa`),
+  atualizarFotoCapa: (clinicaId, formData) => api.put(`/upload/clinica/${clinicaId}/capa`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   }),
-  removerFotoGaleria: (clinicaId, fotoUrl) => api.delete(`/upload/clinica/${clinicaId}/galeria`, {
-    data: { foto_url: fotoUrl }
-  })
+  removerFotoCapa: (clinicaId) => api.delete(`/upload/clinica/${clinicaId}/capa`)
 };
 
 // Dashboard

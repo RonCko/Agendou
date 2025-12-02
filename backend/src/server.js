@@ -20,9 +20,13 @@ async function iniciarServidor() {
     await sincronizarModelos();
 
     // Iniciar servidor
+    app.set('port', PORT);
     app.listen(PORT, () => {
       console.log(`\n Servidor rodando em http://localhost:${PORT}`);
       console.log(` API disponível em http://localhost:${PORT}/api`);
+      if (PORT == 3333) {
+        console.log(` Documentação Swagger: http://localhost:${PORT}/api-docs`);
+      }
       console.log(` Ambiente: ${config.server.env}`);
       console.log(`\n Rotas disponíveis:`);
       console.log(`   POST   /api/auth/registrar`);

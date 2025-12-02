@@ -138,9 +138,135 @@ router.post('/registrar', AuthController.registrar);
  *                   example: Login realizado com sucesso
  *                 token:
  *                   type: string
- *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ *                   description: Token JWT para autenticação
  *                 usuario:
- *                   $ref: '#/components/schemas/Usuario'
+ *                   type: object
+ *                   description: Dados completos do usuário (inclui 'paciente' OU 'clinica' conforme o tipo)
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     nome:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     tipo:
+ *                       type: string
+ *                       enum: [paciente, clinica]
+ *                     telefone:
+ *                       type: string
+ *                     foto_perfil:
+ *                       type: string
+ *                       nullable: true
+ *                     ativo:
+ *                       type: boolean
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *                     updatedAt:
+ *                       type: string
+ *                       format: date-time
+ *                     paciente:
+ *                       type: object
+ *                       description: Presente apenas se tipo = 'paciente'
+ *                       properties:
+ *                         id:
+ *                           type: integer
+ *                         cpf:
+ *                           type: string
+ *                         data_nascimento:
+ *                           type: string
+ *                           format: date
+ *                         endereco:
+ *                           type: string
+ *                     clinica:
+ *                       type: object
+ *                       description: Presente apenas se tipo = 'clinica'
+ *                       properties:
+ *                         id:
+ *                           type: integer
+ *                         cnpj:
+ *                           type: string
+ *                         nome_fantasia:
+ *                           type: string
+ *                         descricao:
+ *                           type: string
+ *                         endereco:
+ *                           type: string
+ *                         cidade:
+ *                           type: string
+ *                         estado:
+ *                           type: string
+ *                         cep:
+ *                           type: string
+ *                         telefone_comercial:
+ *                           type: string
+ *                         foto_capa:
+ *                           type: string
+ *                           nullable: true
+ *                         ativo:
+ *                           type: boolean
+ *                         especializacoes:
+ *                           type: array
+ *                           items:
+ *                             type: object
+ *                             properties:
+ *                               id:
+ *                                 type: integer
+ *                               nome:
+ *                                 type: string
+ *             examples:
+ *               paciente:
+ *                 summary: Login de Paciente
+ *                 value:
+ *                   mensagem: Login realizado com sucesso
+ *                   token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwidGlwbyI6InBhY2llbnRlIiwiaWF0IjoxNzMzMDc4NDAwLCJleHAiOjE3MzMxNjQ4MDB9.example
+ *                   usuario:
+ *                     id: 2
+ *                     nome: Eduardo Silva
+ *                     email: edudu29@hotmail.com.br
+ *                     tipo: paciente
+ *                     telefone: "11987654321"
+ *                     foto_perfil: null
+ *                     ativo: true
+ *                     createdAt: "2025-12-01T10:30:00.000Z"
+ *                     updatedAt: "2025-12-01T10:30:00.000Z"
+ *                     paciente:
+ *                       id: 2
+ *                       cpf: "12345678900"
+ *                       data_nascimento: "1995-05-20"
+ *                       endereco: "Rua das Acácias, 456"
+ *               clinica:
+ *                 summary: Login de Clínica
+ *                 value:
+ *                   mensagem: Login realizado com sucesso
+ *                   token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidGlwbyI6ImNsaW5pY2EiLCJpYXQiOjE3MzMwNzg0MDAsImV4cCI6MTczMzE2NDgwMH0.example
+ *                   usuario:
+ *                     id: 1
+ *                     nome: Clínica Vida Saudável
+ *                     email: contato@vidasaudavel.com.br
+ *                     tipo: clinica
+ *                     telefone: "1133334444"
+ *                     foto_perfil: null
+ *                     ativo: true
+ *                     createdAt: "2025-11-28T08:00:00.000Z"
+ *                     updatedAt: "2025-11-28T08:00:00.000Z"
+ *                     clinica:
+ *                       id: 1
+ *                       cnpj: "12345678000199"
+ *                       nome_fantasia: Clínica Vida Saudável
+ *                       descricao: Clínica especializada em saúde integral com equipe multidisciplinar
+ *                       endereco: Av. Paulista, 1000 - Sala 505
+ *                       cidade: São Paulo
+ *                       estado: SP
+ *                       cep: "01310-100"
+ *                       telefone_comercial: "1133334444"
+ *                       foto_capa: /uploads/capa-clinica1.jpg
+ *                       ativo: true
+ *                       especializacoes:
+ *                         - id: 1
+ *                           nome: Cardiologia
+ *                         - id: 3
+ *                           nome: Dermatologia
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
  */
@@ -194,52 +320,5 @@ router.post('/logout', estaLogado, AuthController.logout);
  *         $ref: '#/components/responses/UnauthorizedError'
  */
 router.get('/perfil', verificarToken, AuthController.perfil);
-
-/**
- * @swagger
- * /auth/perfil:
- *   put:
- *     tags: [Autenticação]
- *     summary: Atualizar perfil do usuário
- *     description: Atualiza os dados do perfil do usuário autenticado
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               nome:
- *                 type: string
- *                 example: João da Silva Atualizado
- *               telefone:
- *                 type: string
- *                 example: "11988887777"
- *               senha:
- *                 type: string
- *                 format: password
- *                 description: Nova senha (opcional)
- *                 example: novaSenha123
- *     responses:
- *       200:
- *         description: Perfil atualizado com sucesso
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 mensagem:
- *                   type: string
- *                   example: Perfil atualizado com sucesso
- *                 usuario:
- *                   $ref: '#/components/schemas/Usuario'
- *       400:
- *         $ref: '#/components/responses/BadRequestError'
- *       401:
- *         $ref: '#/components/responses/UnauthorizedError'
- */
-router.put('/perfil', verificarToken, AuthController.atualizarPerfil);
 
 export default router;

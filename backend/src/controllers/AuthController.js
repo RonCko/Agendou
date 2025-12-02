@@ -155,8 +155,14 @@ class AuthController {
         });
       }
 
-      // Buscar usuário
-      const usuario = await Usuario.findOne({ where: { email } });
+      // Buscar usuário com dados completos
+      const usuario = await Usuario.findOne({ 
+        where: { email },
+        include: [
+          { association: 'paciente' },
+          { association: 'clinica', include: ['especializacoes'] }
+        ]
+      });
       
       if (!usuario) {
         return res.status(401).json({ 
@@ -189,6 +195,44 @@ class AuthController {
         { expiresIn: config.jwt.expiresIn }
       );
 
+      // Preparar dados do usuário para retorno
+      const dadosUsuario = {
+        id: usuario.id,
+        nome: usuario.nome,
+        email: usuario.email,
+        tipo: usuario.tipo,
+        telefone: usuario.telefone,
+        foto_perfil: usuario.foto_perfil,
+        ativo: usuario.ativo,
+        createdAt: usuario.createdAt,
+        updatedAt: usuario.updatedAt
+      };
+
+      // Adicionar dados específicos conforme o tipo
+      if (usuario.tipo === 'paciente' && usuario.paciente) {
+        dadosUsuario.paciente = {
+          id: usuario.paciente.id,
+          cpf: usuario.paciente.cpf,
+          data_nascimento: usuario.paciente.data_nascimento,
+          endereco: usuario.paciente.endereco
+        };
+      } else if (usuario.tipo === 'clinica' && usuario.clinica) {
+        dadosUsuario.clinica = {
+          id: usuario.clinica.id,
+          cnpj: usuario.clinica.cnpj,
+          nome_fantasia: usuario.clinica.nome_fantasia,
+          descricao: usuario.clinica.descricao,
+          endereco: usuario.clinica.endereco,
+          cidade: usuario.clinica.cidade,
+          estado: usuario.clinica.estado,
+          cep: usuario.clinica.cep,
+          telefone_comercial: usuario.clinica.telefone_comercial,
+          foto_capa: usuario.clinica.foto_capa,
+          ativo: usuario.clinica.ativo,
+          especializacoes: usuario.clinica.especializacoes || []
+        };
+      }
+
       // Salvar na sessão também
       req.session.usuario = {
         id: usuario.id,
@@ -200,14 +244,7 @@ class AuthController {
       return res.status(200).json({
         mensagem: 'Login realizado com sucesso',
         token,
-        usuario: {
-          id: usuario.id,
-          nome: usuario.nome,
-          email: usuario.email,
-          tipo: usuario.tipo,
-          telefone: usuario.telefone,
-          foto_perfil: usuario.foto_perfil
-        }
+        usuario: dadosUsuario
       });
     } catch (error) {
       console.error('Erro ao fazer login:', error);
@@ -251,54 +288,6 @@ class AuthController {
     } catch (error) {
       console.error('Erro ao buscar perfil:', error);
       return res.status(500).json({ erro: 'Erro ao buscar perfil' });
-    }
-  }
-
-  // Atualizar perfil
-  async atualizarPerfil(req, res) {
-    try {
-      const { nome, telefone, foto_perfil, senha_atual, senha_nova } = req.body;
-      
-      const usuario = await Usuario.findByPk(req.usuarioId);
-
-      if (!usuario) {
-        return res.status(404).json({ erro: 'Usuário não encontrado' });
-      }
-
-      // Se quiser alterar senha
-      if (senha_atual && senha_nova) {
-        const senhaValida = await bcrypt.compare(senha_atual, usuario.senha);
-        
-        if (!senhaValida) {
-          return res.status(400).json({ 
-            erro: 'Senha atual incorreta' 
-          });
-        }
-
-        usuario.senha = await bcrypt.hash(senha_nova, 10);
-      }
-
-      // Atualizar outros campos
-      if (nome) usuario.nome = nome;
-      if (telefone) usuario.telefone = telefone;
-      if (foto_perfil) usuario.foto_perfil = foto_perfil;
-
-      await usuario.save();
-
-      return res.status(200).json({
-        mensagem: 'Perfil atualizado com sucesso',
-        usuario: {
-          id: usuario.id,
-          nome: usuario.nome,
-          email: usuario.email,
-          telefone: usuario.telefone,
-          foto_perfil: usuario.foto_perfil,
-          tipo: usuario.tipo
-        }
-      });
-    } catch (error) {
-      console.error('Erro ao atualizar perfil:', error);
-      return res.status(500).json({ erro: 'Erro ao atualizar perfil' });
     }
   }
 }

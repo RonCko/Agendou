@@ -45,8 +45,19 @@ if (config.server.env === 'development') {
 // DOCUMENTAÇÃO SWAGGER
 // ========================================
 
-// Swagger UI
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+// Swagger UI - apenas na porta 3333
+app.use('/api-docs', (req, res, next) => {
+  const host = req.get('host');
+  const port = host ? host.split(':')[1] : null;
+  
+  if (port !== '3333') {
+    return res.status(404).json({ 
+      erro: 'Não encontrado',
+      mensagem: 'A documentação da API está disponível apenas em http://localhost:3333/api-docs'
+    });
+  }
+  next();
+}, swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
   customSiteTitle: 'API Agendou - Documentação',
   customfavIcon: 'https://swagger.io/favicon.ico',
   customCss: '.swagger-ui .topbar { display: none }',
@@ -58,8 +69,18 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
   }
 }));
 
-// Swagger JSON
+// Swagger JSON - apenas na porta 3333
 app.get('/api-docs.json', (req, res) => {
+  const host = req.get('host');
+  const port = host ? host.split(':')[1] : null;
+  
+  if (port !== '3333') {
+    return res.status(404).json({ 
+      erro: 'Não encontrado',
+      mensagem: 'A documentação da API está disponível apenas em http://localhost:3333/api-docs'
+    });
+  }
+  
   res.setHeader('Content-Type', 'application/json');
   res.send(swaggerSpec);
 });

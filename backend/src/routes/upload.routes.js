@@ -1,56 +1,9 @@
 import express from 'express';
 import UploadController from '../controllers/UploadController.js';
 import upload from '../config/upload.js';
-import { verificarToken, estaLogado, eClinicaOuAdmin } from '../middlewares/auth.js';
+import { verificarToken, estaLogado, eClinica } from '../middlewares/auth.js';
 
 const router = express.Router();
-
-/**
- * @swagger
- * /upload/perfil:
- *   post:
- *     tags: [Upload]
- *     summary: Upload de foto de perfil
- *     description: |
- *       Faz upload de uma foto de perfil do usuário.
- *       
- *       **Formatos aceitos:** JPG, JPEG, PNG  
- *       **Tamanho máximo:** 5MB
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             required:
- *               - foto
- *             properties:
- *               foto:
- *                 type: string
- *                 format: binary
- *                 description: Arquivo de imagem (JPG, JPEG, PNG)
- *     responses:
- *       200:
- *         description: Upload realizado com sucesso
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 mensagem:
- *                   type: string
- *                   example: Upload realizado com sucesso
- *                 url:
- *                   type: string
- *                   example: http://localhost:3333/uploads/1234567890-foto.jpg
- *       400:
- *         $ref: '#/components/responses/BadRequestError'
- *       401:
- *         $ref: '#/components/responses/UnauthorizedError'
- */
-router.post('/perfil', [verificarToken, estaLogado], upload.single('foto'), UploadController.uploadFotoPerfil);
 
 /**
  * @swagger
@@ -105,21 +58,56 @@ router.post('/perfil', [verificarToken, estaLogado], upload.single('foto'), Uplo
  *       403:
  *         $ref: '#/components/responses/ForbiddenError'
  */
-router.post('/clinica/:id/capa', [verificarToken, estaLogado, eClinicaOuAdmin], upload.single('foto'), UploadController.uploadFotoCapa);
+router.post('/clinica/:id/capa', [verificarToken, estaLogado, eClinica], upload.single('foto'), UploadController.uploadFotoCapa);
 
 /**
  * @swagger
- * /upload/clinica/{id}/galeria:
- *   post:
+ * /upload/clinica/{id}/capa:
+ *   get:
  *     tags: [Upload]
- *     summary: Upload de fotos para galeria da clínica
+ *     summary: Buscar foto de capa da clínica
  *     description: |
- *       Faz upload de múltiplas fotos para a galeria da clínica.
+ *       Retorna a URL da foto de capa da clínica.
  *       
- *       **Acesso:** Apenas a própria clínica ou admin  
- *       **Máximo:** 10 fotos por vez  
+ *       **Acesso:** Público
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID da clínica
+ *     responses:
+ *       200:
+ *         description: URL da foto de capa
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 foto_capa:
+ *                   type: string
+ *                   example: /uploads/foto-123.jpg
+ *                 url_completa:
+ *                   type: string
+ *                   example: http://localhost:3333/uploads/foto-123.jpg
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ */
+router.get('/clinica/:id/capa', UploadController.buscarFotoCapa);
+
+/**
+ * @swagger
+ * /upload/clinica/{id}/capa:
+ *   put:
+ *     tags: [Upload]
+ *     summary: Atualizar foto de capa da clínica
+ *     description: |
+ *       Atualiza a foto de capa da clínica, removendo a anterior.
+ *       
+ *       **Acesso:** Apenas a própria clínica  
  *       **Formatos aceitos:** JPG, JPEG, PNG  
- *       **Tamanho máximo:** 5MB por foto
+ *       **Tamanho máximo:** 5MB
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -136,17 +124,15 @@ router.post('/clinica/:id/capa', [verificarToken, estaLogado, eClinicaOuAdmin], 
  *           schema:
  *             type: object
  *             required:
- *               - fotos
+ *               - foto
  *             properties:
- *               fotos:
- *                 type: array
- *                 items:
- *                   type: string
- *                   format: binary
- *                 description: Múltiplos arquivos de imagem (máx. 10)
+ *               foto:
+ *                 type: string
+ *                 format: binary
+ *                 description: Arquivo de imagem (JPG, JPEG, PNG)
  *     responses:
  *       200:
- *         description: Fotos adicionadas à galeria com sucesso
+ *         description: Foto de capa atualizada com sucesso
  *         content:
  *           application/json:
  *             schema:
@@ -154,25 +140,69 @@ router.post('/clinica/:id/capa', [verificarToken, estaLogado, eClinicaOuAdmin], 
  *               properties:
  *                 mensagem:
  *                   type: string
- *                   example: Fotos adicionadas com sucesso
- *                 urls:
- *                   type: array
- *                   items:
- *                     type: string
+ *                   example: Foto de capa atualizada com sucesso
+ *                 foto_capa:
+ *                   type: string
+ *                   example: /uploads/foto-123.jpg
+ *       400:
+ *         $ref: '#/components/responses/BadRequestError'
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
  *       403:
  *         $ref: '#/components/responses/ForbiddenError'
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
  */
-router.post('/clinica/:id/galeria', [verificarToken, estaLogado, eClinicaOuAdmin], upload.array('fotos', 10), UploadController.uploadGaleria);
+router.post('/clinica/:id/capa', [verificarToken, estaLogado, eClinica], upload.single('foto'), UploadController.uploadFotoCapa);
 
 /**
  * @swagger
- * /upload/clinica/{id}/galeria:
- *   delete:
+ * /upload/clinica/{id}/capa:
+ *   get:
  *     tags: [Upload]
- *     summary: Remover foto da galeria
- *     description: Remove uma foto específica da galeria da clínica
+ *     summary: Buscar foto de capa da clínica
+ *     description: |
+ *       Retorna a URL da foto de capa da clínica.
+ *       
+ *       **Acesso:** Público
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID da clínica
+ *     responses:
+ *       200:
+ *         description: URL da foto de capa
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 foto_capa:
+ *                   type: string
+ *                   example: /uploads/foto-123.jpg
+ *                 url_completa:
+ *                   type: string
+ *                   example: http://localhost:3333/uploads/foto-123.jpg
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ */
+router.get('/clinica/:id/capa', UploadController.buscarFotoCapa);
+
+/**
+ * @swagger
+ * /upload/clinica/{id}/capa:
+ *   put:
+ *     tags: [Upload]
+ *     summary: Atualizar foto de capa da clínica
+ *     description: |
+ *       Atualiza a foto de capa da clínica, removendo a anterior.
+ *       
+ *       **Acesso:** Apenas a própria clínica  
+ *       **Formatos aceitos:** JPG, JPEG, PNG  
+ *       **Tamanho máximo:** 5MB
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -185,24 +215,78 @@ router.post('/clinica/:id/galeria', [verificarToken, estaLogado, eClinicaOuAdmin
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             required:
- *               - foto_url
+ *               - foto
  *             properties:
- *               foto_url:
+ *               foto:
  *                 type: string
- *                 description: URL da foto a ser removida
- *                 example: http://localhost:3333/uploads/foto.jpg
+ *                 format: binary
+ *                 description: Arquivo de imagem (JPG, JPEG, PNG)
  *     responses:
  *       200:
- *         description: Foto removida com sucesso
+ *         description: Foto de capa atualizada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mensagem:
+ *                   type: string
+ *                   example: Foto de capa atualizada com sucesso
+ *                 foto_capa:
+ *                   type: string
+ *                   example: /uploads/foto-123.jpg
+ *       400:
+ *         $ref: '#/components/responses/BadRequestError'
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
  *       403:
  *         $ref: '#/components/responses/ForbiddenError'
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
  */
-router.delete('/clinica/:id/galeria', [verificarToken, estaLogado, eClinicaOuAdmin], UploadController.removerFotoGaleria);
+router.put('/clinica/:id/capa', [verificarToken, estaLogado, eClinica], upload.single('foto'), UploadController.atualizarFotoCapa);
+
+/**
+ * @swagger
+ * /upload/clinica/{id}/capa:
+ *   delete:
+ *     tags: [Upload]
+ *     summary: Remover foto de capa da clínica
+ *     description: |
+ *       Remove a foto de capa da clínica.
+ *       
+ *       **Acesso:** Apenas a própria clínica
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID da clínica
+ *     responses:
+ *       200:
+ *         description: Foto de capa removida com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mensagem:
+ *                   type: string
+ *                   example: Foto de capa removida com sucesso
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ */
+router.delete('/clinica/:id/capa', [verificarToken, estaLogado, eClinica], UploadController.removerFotoCapa);
 
 export default router;

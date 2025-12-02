@@ -415,6 +415,18 @@ export default function ConfiguracaoClinica() {
     }
   }
 
+  async function handleRemoverFotoCapa() {
+    if (!confirm('Deseja realmente remover a foto de capa?')) return;
+
+    try {
+      await uploadAPI.removerFotoCapa(clinica.id);
+      setAlert({ type: 'success', message: 'Foto de capa removida!' });
+      carregarDados();
+    } catch (error) {
+      setAlert({ type: 'error', message: error.response?.data?.erro || 'Erro ao remover foto' });
+    }
+  }
+
   if (loading) return <Loading />;
   if (!clinica) return <div className="container mx-auto p-4">Clínica não encontrada</div>;
 
@@ -1045,12 +1057,21 @@ export default function ConfiguracaoClinica() {
         <div className="bg-gradient-to-br from-white to-gray-50 p-8 rounded-xl shadow-lg">
           <h2 className="text-2xl font-bold mb-6 text-gray-800">Foto de Capa</h2>
           {clinica.foto_capa && (
-            <div className="mb-6">
+            <div className="mb-6 relative">
               <img 
                 src={`http://localhost:3333${clinica.foto_capa}`} 
                 alt="Foto de capa" 
                 className="w-full h-72 object-cover rounded-lg shadow-md"
               />
+              <button
+                onClick={handleRemoverFotoCapa}
+                className="absolute top-4 right-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg shadow-lg transition-all duration-200 flex items-center gap-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                Remover Foto
+              </button>
             </div>
           )}
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-primary-400 transition-all">
@@ -1061,7 +1082,7 @@ export default function ConfiguracaoClinica() {
               className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all outline-none file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
             />
           </div>
-          <p className="text-sm text-gray-500 mt-4"> Tamanho máximo: 5MB • Formatos: JPG, PNG, GIF, WEBP</p>
+          <p className="text-sm text-gray-500 mt-4">📸 Tamanho máximo: 5MB • Formatos: JPG, PNG, GIF, WEBP</p>
         </div>
       )}
     </div>

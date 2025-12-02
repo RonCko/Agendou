@@ -107,7 +107,7 @@ Agora você pode testar todas as rotas protegidas!
             },
             tipo: {
               type: 'string',
-              enum: ['paciente', 'clinica', 'admin'],
+              enum: ['paciente', 'clinica'],
               description: 'Tipo de usuário',
               example: 'paciente'
             },

@@ -1,6 +1,6 @@
 import express from 'express';
 import ClinicaController from '../controllers/ClinicaController.js';
-import { verificarToken, eClinicaOuAdmin } from '../middlewares/auth.js';
+import { verificarToken, eClinica } from '../middlewares/auth.js';
 
 const router = express.Router();
 
@@ -582,18 +582,18 @@ const router = express.Router();
 // Rotas de clínicas
 router.get('/', ClinicaController.listar);
 router.get('/:id', ClinicaController.buscarPorId);
-router.put('/:id', verificarToken, eClinicaOuAdmin, ClinicaController.atualizar);
+router.put('/:id', verificarToken, eClinica, ClinicaController.atualizar);
 
 // Rotas de especializações da clínica
-router.post('/:id/especializacoes', verificarToken, eClinicaOuAdmin, ClinicaController.adicionarEspecializacao);
-router.delete('/:id/especializacoes/:especializacao_id', verificarToken, eClinicaOuAdmin, ClinicaController.removerEspecializacao);
+router.post('/:id/especializacoes', verificarToken, eClinica, ClinicaController.adicionarEspecializacao);
+router.delete('/:id/especializacoes/:especializacao_id', verificarToken, eClinica, ClinicaController.removerEspecializacao);
 
 // Rotas de horários
-router.post('/:id/horarios/configurar', verificarToken, eClinicaOuAdmin, ClinicaController.configurarHorariosRecorrentes);
+router.post('/:id/horarios/configurar', verificarToken, eClinica, ClinicaController.configurarHorariosRecorrentes);
 router.get('/:id/horarios/configuracoes', verificarToken, ClinicaController.listarConfiguracoesHorarios);
-router.post('/:id/horarios/bloquear', verificarToken, eClinicaOuAdmin, ClinicaController.bloquearHorarios);
+router.post('/:id/horarios/bloquear', verificarToken, eClinica, ClinicaController.bloquearHorarios);
 router.get('/:id/horarios/excecoes', verificarToken, ClinicaController.listarExcecoes);
-router.delete('/:id/horarios/excecoes/:excecao_id', verificarToken, eClinicaOuAdmin, ClinicaController.removerExcecao);
+router.delete('/:id/horarios/excecoes/:excecao_id', verificarToken, eClinica, ClinicaController.removerExcecao);
 
 /**
  * @swagger

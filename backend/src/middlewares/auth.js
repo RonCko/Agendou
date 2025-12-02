@@ -53,24 +53,6 @@ export const estaLogado = (req, res, next) => {
   });
 };
 
-// Middleware para verificar perfil de admin
-export const eAdmin = (req, res, next) => {
-  const usuario = req.usuario || req.usuarioSessao;
-  
-  if (!usuario) {
-    return res.status(401).json({ erro: 'Usuário não autenticado' });
-  }
-
-  if (usuario.tipo !== 'admin') {
-    return res.status(403).json({ 
-      erro: 'Acesso negado',
-      mensagem: 'Você não tem permissão para acessar este recurso'
-    });
-  }
-
-  next();
-};
-
 // Middleware para verificar perfil de clínica
 export const eClinica = (req, res, next) => {
   const usuario = req.usuario || req.usuarioSessao;
@@ -107,29 +89,9 @@ export const ePaciente = (req, res, next) => {
   next();
 };
 
-// Middleware para verificar se é clínica ou admin
-export const eClinicaOuAdmin = (req, res, next) => {
-  const usuario = req.usuario || req.usuarioSessao;
-  
-  if (!usuario) {
-    return res.status(401).json({ erro: 'Usuário não autenticado' });
-  }
-
-  if (usuario.tipo !== 'clinica' && usuario.tipo !== 'admin') {
-    return res.status(403).json({ 
-      erro: 'Acesso negado',
-      mensagem: 'Você não tem permissão para acessar este recurso'
-    });
-  }
-
-  next();
-};
-
 export default {
   verificarToken,
   estaLogado,
-  eAdmin,
   eClinica,
-  ePaciente,
-  eClinicaOuAdmin
+  ePaciente
 };
