@@ -50,6 +50,12 @@ Agora você pode testar todas as rotas protegidas!
         url: 'https://opensource.org/licenses/MIT'
       }
     },
+    servers: [
+      {
+        url: 'http://localhost:3333/api',
+        description: 'Servidor de Desenvolvimento'
+      }
+    ],
     tags: [
       {
         name: 'Autenticação',
@@ -477,7 +483,7 @@ Agora você pode testar todas as rotas protegidas!
                 $ref: '#/components/schemas/Error'
               },
               example: {
-                erro: 'Já existe um agendamento neste horário'
+                erro: 'Já existe um usuário cadastrado com esses dados'
               }
             }
           }
