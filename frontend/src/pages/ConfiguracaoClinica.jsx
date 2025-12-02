@@ -800,7 +800,7 @@ export default function ConfiguracaoClinica() {
                       disabled={!clinica.especializacoes || clinica.especializacoes.length === 0}
                       className="px-8 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:bg-gray-300 disabled:cursor-not-allowed"
                     >
-                      💾 Salvar Configuração
+                      Salvar Configuração
                     </button>
                   </div>
 

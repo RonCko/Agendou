@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { clinicasAPI, especializacoesAPI } from '../services/api';
 import Loading from '../components/Loading';
-import { Search, Hospital, MapPin, DollarSign, Trash2, ArrowUpDown } from 'lucide-react';
+import { Search, Hospital, MapPin, DollarSign, Trash2 } from 'lucide-react';
 
 export default function Clinicas() {
   const [clinicas, setClinicas] = useState([]);
@@ -12,11 +12,8 @@ export default function Clinicas() {
   const [filtros, setFiltros] = useState({
     busca: '',
     cidade: '',
-    estado: '',
     especializacao: '',
-    preco_min: '',
     preco_max: '',
-    ordenar: 'nome',
     limite: 12
   });
 
@@ -59,11 +56,9 @@ export default function Clinicas() {
     setFiltros({
       busca: '',
       cidade: '',
-      estado: '',
       especializacao: '',
       preco_min: '',
       preco_max: '',
-      ordenar: 'nome',
       limite: 12
     });
   };
@@ -91,8 +86,8 @@ export default function Clinicas() {
           </button>
         </div>
 
-        {/* Linha 1: Busca, Cidade, Estado */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mb-3 sm:mb-4">
+        {/* Linha 1: Busca, Cidade */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-3 sm:mb-4">
           <div className="relative">
             <input
               type="text"
@@ -113,26 +108,10 @@ export default function Clinicas() {
             />
             <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
           </div>
-          <select
-            value={filtros.estado}
-            onChange={(e) => setFiltros({ ...filtros, estado: e.target.value })}
-            className="input text-sm sm:text-base"
-          >
-            <option value="">Todos os Estados</option>
-            <option value="SP">São Paulo</option>
-            <option value="RJ">Rio de Janeiro</option>
-            <option value="MG">Minas Gerais</option>
-            <option value="RS">Rio Grande do Sul</option>
-            <option value="PR">Paraná</option>
-            <option value="SC">Santa Catarina</option>
-            <option value="BA">Bahia</option>
-            <option value="PE">Pernambuco</option>
-            <option value="CE">Ceará</option>
-          </select>
         </div>
 
-        {/* Linha 2: Especialização, Preços, Ordenação */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
+        {/* Linha 2: Especialização, Preço */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
           <select
             value={filtros.especializacao}
             onChange={(e) => setFiltros({ ...filtros, especializacao: e.target.value })}
@@ -156,14 +135,6 @@ export default function Clinicas() {
             />
             <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
           </div>
-          <select
-            value={filtros.ordenar}
-            onChange={(e) => setFiltros({ ...filtros, ordenar: e.target.value })}
-            className="input text-sm sm:text-base sm:col-span-2 lg:col-span-1"
-          >
-            <option value="nome">Ordenar por Nome</option>
-            <option value="preco">Ordenar por Preço</option>
-          </select>
         </div>
 
         {/* Botão de Busca */}

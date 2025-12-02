@@ -148,6 +148,20 @@ class AgendamentoController {
       // ========================================
       // REGRA DE NEGÓCIO: Verificar se já existe agendamento no mesmo horário
       // ========================================
+      
+      // Debug: Buscar TODOS os agendamentos nesse horário para verificar
+      const todosAgendamentos = await Agendamento.findAll({
+        where: {
+          clinica_id,
+          especializacao_id,
+          data_agendamento,
+          hora_agendamento
+        },
+        attributes: ['id', 'status']
+      });
+
+      console.log('Todos os agendamentos neste horário:', todosAgendamentos.map(a => ({ id: a.id, status: a.status })));
+
       const agendamentoExistente = await Agendamento.findOne({
         where: {
           clinica_id,
@@ -155,18 +169,25 @@ class AgendamentoController {
           data_agendamento,
           hora_agendamento,
           status: {
-            [Op.notIn]: ['cancelado', 'faltou'] // Ignorar agendamentos cancelados
+            [Op.notIn]: ['cancelado', 'faltou']
           }
         }
       });
 
+      console.log('Agendamento conflitante encontrado:', agendamentoExistente ? {
+        id: agendamentoExistente.id,
+        status: agendamentoExistente.status
+      } : 'nenhum');
+
       if (agendamentoExistente) {
         return res.status(409).json({ 
           erro: 'Horário indisponível',
-          mensagem: 'Já existe um agendamento para este horário e especialização nesta clínica',
+          mensagem: 'Já existe um agendamento ativo para este horário',
           conflito: {
+            id: agendamentoExistente.id,
             data: agendamentoExistente.data_agendamento,
-            hora: agendamentoExistente.hora_agendamento
+            hora: agendamentoExistente.hora_agendamento,
+            status: agendamentoExistente.status
           }
         });
       }
@@ -453,13 +474,13 @@ class AgendamentoController {
         }
       });
 
-      // 5. Buscar agendamentos já existentes
+      // 5. Buscar agendamentos já existentes (excluindo cancelados e faltou)
       const agendamentos = await Agendamento.findAll({
         where: {
           clinica_id,
           especializacao_id,
           data_agendamento,
-          status: { [Op.ne]: 'cancelado' }
+          status: { [Op.notIn]: ['cancelado', 'faltou'] }
         },
         attributes: ['hora_agendamento']
       });

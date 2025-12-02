@@ -108,7 +108,19 @@ export default function NovoAgendamento() {
       setSuccess('Agendamento criado com sucesso!');
       setTimeout(() => navigate('/meus-agendamentos'), 2000);
     } catch (error) {
-      setError(error.response?.data?.mensagem || 'Erro ao criar agendamento');
+      const mensagem = error.response?.data?.mensagem || 'Erro ao criar agendamento';
+      const conflito = error.response?.data?.conflito;
+      
+      if (conflito && conflito.status) {
+        setError(`${mensagem} (Status: ${conflito.status})`);
+      } else {
+        setError(mensagem);
+      }
+      
+      // Recarregar horários disponíveis se houver conflito
+      if (error.response?.status === 409) {
+        verificarDisponibilidade();
+      }
     } finally {
       setSubmitting(false);
     }

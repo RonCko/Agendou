@@ -60,9 +60,16 @@ const Agendamento = sequelize.define('Agendamento', {
   updatedAt: 'updated_at',
   indexes: [
     {
+      // Índice único parcial: permite múltiplos cancelados/faltou no mesmo horário,
+      // mas impede múltiplos agendamentos ativos (pendente/confirmado/realizado)
       unique: true,
-      fields: ['clinica_id', 'especializacao_id', 'data_agendamento', 'hora_agendamento'],
-      name: 'unique_agendamento_horario'
+      fields: ['clinica_id', 'especializacao_id', 'data_agendamento', 'hora_agendamento', 'status'],
+      name: 'unique_agendamento_ativo',
+      where: {
+        status: {
+          [sequelize.Sequelize.Op.notIn]: ['cancelado', 'faltou']
+        }
+      }
     }
   ]
 });

@@ -2,7 +2,6 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import config from '../config/config.js';
 import { Usuario, Paciente, Clinica, sequelize } from '../models/index.js';
-import { cpf as validarCPF, cnpj as validarCNPJ } from 'cpf-cnpj-validator'
 
 class AuthController {
   // Registro de novo usuário
@@ -56,7 +55,7 @@ class AuthController {
         nome,
         email,
         senha: senhaHash,
-        telefone,
+        telefone: telefone || null,
         tipo,
         ativo: true
       }, { transaction: t });
@@ -73,19 +72,11 @@ class AuthController {
           });
         }
 
-        if (!validarCPF.isValid(cpf)) {
-          await t.rollback();
-          return res.status(400).json({
-            erro: 'CPF inválido',
-            mensagem: 'O CPF fornecido não é válido'
-          });
-        }
-
         await Paciente.create({
           usuario_id: usuario.id,
           cpf,
           data_nascimento,
-          endereco
+          endereco: endereco || null
         }, { transaction: t });
       }
 
@@ -98,14 +89,6 @@ class AuthController {
           return res.status(400).json({ 
             erro: 'Dados incompletos',
             mensagem: 'CNPJ, nome fantasia, endereço, cidade e estado são obrigatórios para clínicas'
-          });
-        }
-
-        if (!validarCNPJ.isValid(cnpj)) {
-          await t.rollback();
-          return res.status(400).json({
-            erro: 'CNPJ inválido',
-            mensagem: 'O CNPJ fornecido não é válido'
           });
         }
 
@@ -126,6 +109,15 @@ class AuthController {
       // Commit da transação
       await t.commit();
 
+      // Buscar usuário com dados relacionados
+      const usuarioCompleto = await Usuario.findByPk(usuario.id, {
+        attributes: { exclude: ['senha'] },
+        include: [
+          { association: 'paciente' },
+          { association: 'clinica', include: [{ association: 'especializacoes' }] }
+        ]
+      });
+
       // Gerar token JWT
       const token = jwt.sign(
         { id: usuario.id, tipo: usuario.tipo },
@@ -133,15 +125,46 @@ class AuthController {
         { expiresIn: config.jwt.expiresIn }
       );
 
+      // Preparar dados do usuário para retorno
+      const dadosUsuario = {
+        id: usuarioCompleto.id,
+        nome: usuarioCompleto.nome,
+        email: usuarioCompleto.email,
+        tipo: usuarioCompleto.tipo,
+        telefone: usuarioCompleto.telefone,
+        foto_perfil: usuarioCompleto.foto_perfil,
+        ativo: usuarioCompleto.ativo
+      };
+
+      // Adicionar dados específicos conforme o tipo
+      if (usuarioCompleto.tipo === 'paciente' && usuarioCompleto.paciente) {
+        dadosUsuario.paciente = {
+          id: usuarioCompleto.paciente.id,
+          cpf: usuarioCompleto.paciente.cpf,
+          data_nascimento: usuarioCompleto.paciente.data_nascimento,
+          endereco: usuarioCompleto.paciente.endereco
+        };
+      } else if (usuarioCompleto.tipo === 'clinica' && usuarioCompleto.clinica) {
+        dadosUsuario.clinica = {
+          id: usuarioCompleto.clinica.id,
+          cnpj: usuarioCompleto.clinica.cnpj,
+          nome_fantasia: usuarioCompleto.clinica.nome_fantasia,
+          descricao: usuarioCompleto.clinica.descricao,
+          endereco: usuarioCompleto.clinica.endereco,
+          cidade: usuarioCompleto.clinica.cidade,
+          estado: usuarioCompleto.clinica.estado,
+          cep: usuarioCompleto.clinica.cep,
+          telefone_comercial: usuarioCompleto.clinica.telefone_comercial,
+          foto_capa: usuarioCompleto.clinica.foto_capa,
+          ativo: usuarioCompleto.clinica.ativo,
+          especializacoes: usuarioCompleto.clinica.especializacoes || []
+        };
+      }
+
       return res.status(201).json({
         mensagem: 'Usuário registrado com sucesso',
         token,
-        usuario: {
-          id: usuario.id,
-          nome: usuario.nome,
-          email: usuario.email,
-          tipo: usuario.tipo
-        }
+        usuario: dadosUsuario
       });
     } catch (error) {
       await t.rollback();
