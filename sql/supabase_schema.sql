@@ -9,7 +9,7 @@ CREATE TABLE public.usuarios (
   email character varying NOT NULL UNIQUE,
   senha character varying NOT NULL,
   telefone character varying,
-  tipo character varying NOT NULL CHECK (tipo::text = ANY (ARRAY['paciente'::character varying, 'clinica'::character varying, 'admin'::character varying]::text[])),
+  tipo character varying NOT NULL CHECK (tipo::text = ANY (ARRAY['paciente'::character varying, 'clinica'::character varying]::text[])),
   ativo boolean DEFAULT true,
   foto_perfil text,
   created_at timestamp with time zone DEFAULT now(),
@@ -163,7 +163,7 @@ CREATE INDEX IF NOT EXISTS idx_agendamentos_data ON public.agendamentos(data_age
 CREATE INDEX IF NOT EXISTS idx_avaliacoes_clinica_id ON public.avaliacoes(clinica_id);
 CREATE INDEX IF NOT EXISTS idx_avaliacoes_paciente_id ON public.avaliacoes(paciente_id);
 
-COMMENT ON TABLE public.usuarios IS 'Usuários do sistema (pacientes, clínicas, admin)';
+
 COMMENT ON TABLE public.pacientes IS 'Dados específicos de pacientes (1:1 com usuarios)';
 COMMENT ON TABLE public.clinicas IS 'Dados específicos de clínicas (1:1 com usuarios)';
 COMMENT ON TABLE public.especializacoes IS 'Catálogo de especializações médicas';

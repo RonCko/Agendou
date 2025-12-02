@@ -198,8 +198,6 @@ Agendou/
 - `estaLogado`: Verifica sessão
 - `ePaciente`: Apenas pacientes
 - `eClinica`: Apenas clínicas
-- `eAdmin`: Apenas admin
-- `eClinicaOuAdmin`: Clínica ou admin
 
 ---
 
@@ -235,9 +233,8 @@ GET    /api/agendamentos/disponibilidade
 
 ### Upload
 ```
-POST   /api/upload/perfil              # Foto de perfil
 POST   /api/upload/clinica/:id/capa    # Foto de capa
-DELETE /api/upload/clinica/:id/galeria # Remover foto
+
 ```
 
 ---
@@ -251,12 +248,12 @@ DELETE /api/upload/clinica/:id/galeria # Remover foto
 | `/register` | Cadastro | Público |
 | `/clinicas` | Catálogo de Clínicas | Público |
 | `/clinicas/:id` | Detalhes da Clínica | Público |
-| `/dashboard-paciente` | Dashboard Paciente 🆕 | Paciente |
+| `/dashboard-paciente` | Dashboard Paciente  | Paciente |
 | `/meus-agendamentos` | Meus Agendamentos | Paciente |
 | `/agendar/:id` | Novo Agendamento | Paciente |
-| `/dashboard-clinica` | Dashboard Clínica 🆕 | Clínica |
+| `/dashboard-clinica` | Dashboard Clínica  | Clínica |
 | `/painel-clinica` | Gerenciar Agendamentos | Clínica |
-| `/configuracao-clinica` | Configurações 🆕 | Clínica |
+| `/configuracao-clinica` | Configurações  | Clínica |
 
 ---
 

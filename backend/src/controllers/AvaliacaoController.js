@@ -111,7 +111,7 @@ class AvaliacaoController {
 
   /**
    * Entrada: clinica_id, usuário obtido de req.usuario/req.usuarioSessao.
-   * Validações: campos obrigatórios, só clínica ou admin pode listar.
+   * Validações: campos obrigatórios, só clínica pode listar.
    * Verifica existência clínica.
    * Lista avaliações com dados do paciente/usuário, ordenadas por data (desc).
    * Retorna lista; captura erros.
@@ -198,7 +198,7 @@ class AvaliacaoController {
 
   /**
    * Entrada: id (avaliação), usuário obtido de req.usuario/req.usuarioSessao.
-   * Validações: só autor ou admin pode deletar.
+   * Validações: só autor pode deletar.
    * Verifica existência avaliação.
    * Deleta avaliação e retorna sucesso;
    * captura erros.
@@ -220,7 +220,7 @@ class AvaliacaoController {
         return res.status(404).json({ erro: 'Avaliação não encontrada' });
       }
 
-      if (avaliacao.paciente.usuario_id !== usuario.id && usuario.tipo !== 'admin') {
+      if (avaliacao.paciente.usuario_id !== usuario.id) {
         return res.status(403).json({ 
           erro: 'Acesso negado',
           mensagem: 'Você só pode deletar suas próprias avaliações'

@@ -1,32 +1,37 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import config from '../config/config.js';
-import { Usuario, Paciente, Clinica } from '../models/index.js';
+import { Usuario, Paciente, Clinica, sequelize } from '../models/index.js';
 import { cpf as validarCPF, cnpj as validarCNPJ } from 'cpf-cnpj-validator'
 
 class AuthController {
   // Registro de novo usuário
   async registrar(req, res) {
+    const t = await sequelize.transaction();
+    
     try {
       const { nome, email, senha, telefone, tipo, ...dadosExtras } = req.body;
 
       // Validações básicas
       if (!nome || !email || !senha || !tipo) {
+        await t.rollback();
         return res.status(400).json({
           erro: 'Campos obrigatórios faltando',
           mensagem: 'Nome, email, senha e tipo são obrigatórios'
         });
       }
 
-      if (!['paciente', 'clinica', 'admin'].includes(tipo)) {
+      if (!['paciente', 'clinica'].includes(tipo)) {
+        await t.rollback();
         return res.status(400).json({
           erro: 'Tipo de usuário inválido',
-          mensagem: 'Tipo deve ser: paciente, clinica ou admin'
+          mensagem: 'Tipo deve ser: paciente ou clinica '
         });
       }
 
       // VALIDAR SENHA
       if (senha.length < 6 || !/[a-zA-Z]/.test(senha) || !/[0-9]/.test(senha)) {
+        await t.rollback();
         return res.status(400).json({
           erro: 'Senha fraca',
           mensagem: 'A senha deve ter no mínimo 6 caracteres, incluindo letras e números'
@@ -34,8 +39,9 @@ class AuthController {
       }
 
       // Verificar se já existe usuário com esse email
-      const usuarioExistente = await Usuario.findOne({ where: { email } });
+      const usuarioExistente = await Usuario.findOne({ where: { email }, transaction: t });
       if (usuarioExistente) {
+        await t.rollback();
         return res.status(400).json({
           erro: 'Email já cadastrado',
           mensagem: 'Este email já está em uso'
@@ -53,14 +59,14 @@ class AuthController {
         telefone,
         tipo,
         ativo: true
-      });
+      }, { transaction: t });
 
       // Se for paciente, criar registro de paciente
       if (tipo === 'paciente') {
         const { cpf, data_nascimento, endereco } = dadosExtras;
 
         if (!cpf || !data_nascimento) {
-          await usuario.destroy();
+          await t.rollback();
           return res.status(400).json({
             erro: 'Dados incompletos',
             mensagem: 'CPF e data de nascimento são obrigatórios para pacientes'
@@ -68,7 +74,7 @@ class AuthController {
         }
 
         if (!validarCPF.isValid(cpf)) {
-          await usuario.destroy();
+          await t.rollback();
           return res.status(400).json({
             erro: 'CPF inválido',
             mensagem: 'O CPF fornecido não é válido'
@@ -80,7 +86,7 @@ class AuthController {
           cpf,
           data_nascimento,
           endereco
-        });
+        }, { transaction: t });
       }
 
       // Se for clínica, criar registro de clínica
@@ -88,7 +94,7 @@ class AuthController {
         const { cnpj, nome_fantasia, descricao, endereco, cidade, estado, cep, telefone_comercial } = dadosExtras;
         
         if (!cnpj || !nome_fantasia || !endereco || !cidade || !estado) {
-          await usuario.destroy();
+          await t.rollback();
           return res.status(400).json({ 
             erro: 'Dados incompletos',
             mensagem: 'CNPJ, nome fantasia, endereço, cidade e estado são obrigatórios para clínicas'
@@ -96,7 +102,7 @@ class AuthController {
         }
 
         if (!validarCNPJ.isValid(cnpj)) {
-          await usuario.destroy();
+          await t.rollback();
           return res.status(400).json({
             erro: 'CNPJ inválido',
             mensagem: 'O CNPJ fornecido não é válido'
@@ -114,8 +120,11 @@ class AuthController {
           cep,
           telefone_comercial,
           ativo: true
-        });
+        }, { transaction: t });
       }
+
+      // Commit da transação
+      await t.commit();
 
       // Gerar token JWT
       const token = jwt.sign(
@@ -135,6 +144,7 @@ class AuthController {
         }
       });
     } catch (error) {
+      await t.rollback();
       console.error('Erro ao registrar:', error);
       return res.status(500).json({ 
         erro: 'Erro ao registrar usuário',
@@ -203,9 +213,7 @@ class AuthController {
         tipo: usuario.tipo,
         telefone: usuario.telefone,
         foto_perfil: usuario.foto_perfil,
-        ativo: usuario.ativo,
-        createdAt: usuario.createdAt,
-        updatedAt: usuario.updatedAt
+        ativo: usuario.ativo
       };
 
       // Adicionar dados específicos conforme o tipo

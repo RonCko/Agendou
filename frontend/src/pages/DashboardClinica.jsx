@@ -1,12 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
 import { dashboardAPI } from '../services/api';
 import Loading from '../components/Loading';
 import { Link } from 'react-router-dom';
-import { DollarSign } from 'lucide-react';
 
 export default function DashboardClinica() {
-  const { user } = useAuth();
   const [dados, setDados] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -51,43 +48,26 @@ export default function DashboardClinica() {
       </div>
 
       {/* Status dos Agendamentos */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-bold mb-4">Status dos Agendamentos</h2>
-          <div className="space-y-3">
-            {Object.entries(resumo.agendamentosPorStatus || {}).map(([status, count]) => {
-              const statusConfig = {
-                pendente: { label: 'Pendentes', color: 'bg-yellow-500' },
-                confirmado: { label: 'Confirmados', color: 'bg-blue-500' },
-                realizado: { label: 'Realizados', color: 'bg-green-500' },
-                cancelado: { label: 'Cancelados', color: 'bg-red-500' }
-              };
-              const config = statusConfig[status] || { label: status, color: 'bg-gray-500' };
-              return (
-                <div key={status} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className={`w-4 h-4 rounded ${config.color}`}></div>
-                    <span>{config.label}</span>
-                  </div>
-                  <span className="font-bold">{count}</span>
+      <div className="bg-white p-6 rounded-lg shadow mb-8">
+        <h2 className="text-xl font-bold mb-4">Status dos Agendamentos</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {Object.entries(resumo.agendamentosPorStatus || {}).map(([status, count]) => {
+            const statusConfig = {
+              pendente: { label: 'Pendentes', color: 'bg-yellow-500' },
+              confirmado: { label: 'Confirmados', color: 'bg-blue-500' },
+              realizado: { label: 'Realizados', color: 'bg-green-500' },
+              cancelado: { label: 'Cancelados', color: 'bg-red-500' }
+            };
+            const config = statusConfig[status] || { label: status, color: 'bg-gray-500' };
+            return (
+              <div key={status} className="text-center">
+                <div className={`w-16 h-16 rounded-full ${config.color} mx-auto mb-2 flex items-center justify-center`}>
+                  <span className="text-2xl font-bold text-white">{count}</span>
                 </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-bold mb-4">Receita Estimada</h2>
-          <p className="text-4xl font-bold text-green-600 mb-2 flex items-center gap-2">
-            <DollarSign size={36} />
-            R$ {parseFloat(resumo.receitaTotal || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </p>
-          <p className="text-sm text-gray-500">Total de agendamentos realizados</p>
-          {resumo.agendamentosSemPreco > 0 && (
-            <p className="text-xs text-amber-600 mt-2">
-              ⚠️ {resumo.agendamentosSemPreco} agendamento(s) sem preço cadastrado
-            </p>
-          )}
+                <span className="text-sm text-gray-600">{config.label}</span>
+              </div>
+            );
+          })}
         </div>
       </div>
 

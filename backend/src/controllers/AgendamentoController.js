@@ -129,9 +129,6 @@ class AgendamentoController {
           return res.status(404).json({ erro: 'Paciente não encontrado' });
         }
         paciente_id = paciente.id;
-      } else if (usuario.tipo === 'admin' && req.body.paciente_id) {
-        // Admin pode criar para qualquer paciente
-        paciente_id = req.body.paciente_id;
       } else {
         return res.status(403).json({ erro: 'Apenas pacientes podem criar agendamentos' });
       }

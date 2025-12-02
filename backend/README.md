@@ -9,7 +9,7 @@ Sistema completo de agendamento de consultas em clínicas médicas particulares,
 ✅ **8 tabelas** no banco de dados relacional  
 ✅ **Relacionamento N:N** (Clínicas ↔ Especializações)  
 ✅ **Relacionamento 1:N** (Clínicas → Agendamentos, Pacientes → Agendamentos)  
-✅ **3 perfis de usuário**: Paciente, Clínica, Admin (gerenciados por sessão e JWT)  
+✅ **3 perfis de usuário**: Paciente, Clínica (gerenciados por sessão e JWT)  
 ✅ **CRUD 100% funcional** em todas as entidades  
 ✅ **Regra de negócio adicional**: Impede agendamentos duplicados no mesmo horário/especialização  
 ✅ **Arquitetura MVC** (Model-View-Controller)
@@ -20,7 +20,7 @@ Sistema completo de agendamento de consultas em clínicas médicas particulares,
 
 ### Tabelas:
 
-1. **usuarios** - Tabela base (tipo: paciente, clinica, admin)
+1. **usuarios** - Tabela base (tipo: paciente, clinica)
 2. **pacientes** - Dados específicos de pacientes (1:1 com usuarios)
 3. **clinicas** - Dados específicos de clínicas (1:1 com usuarios)
 4. **especializacoes** - Catálogo de especializações médicas
@@ -96,10 +96,10 @@ O frontend estará rodando em `http://localhost:5173`
 |--------|------|-----------|---------|
 | GET | `/` | Listar clínicas (catálogo) | ✅ |
 | GET | `/:id` | Buscar clínica por ID | ✅ |
-| PUT | `/:id` | Atualizar dados da clínica | 🔒 Clínica/Admin |
-| POST | `/:id/especializacoes` | Adicionar especialização | 🔒 Clínica/Admin |
-| DELETE | `/:id/especializacoes/:id` | Remover especialização | 🔒 Clínica/Admin |
-| POST | `/:id/horarios` | Configurar horários | 🔒 Clínica/Admin |
+| PUT | `/:id` | Atualizar dados da clínica | 🔒 Clínica |
+| POST | `/:id/especializacoes` | Adicionar especialização | 🔒 Clínica |
+| DELETE | `/:id/especializacoes/:id` | Remover especialização | 🔒 Clínica |
+| POST | `/:id/horarios` | Configurar horários | 🔒 Clínica |
 
 ### Agendamentos (`/api/agendamentos`)
 
@@ -181,13 +181,6 @@ Retorna lista de horários já ocupados.
 - Configurar especializações oferecidas
 - Definir horários de atendimento
 - Atualizar dados do perfil
-
-### 3. **Admin**
-- Acesso total ao sistema
-- Gerenciar usuários
-- Ver todos os agendamentos
-- Moderação de conteúdo
-
 ---
 
 ## 📁 Estrutura de Pastas

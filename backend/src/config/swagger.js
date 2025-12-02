@@ -111,20 +111,113 @@ Agora você pode testar todas as rotas protegidas!
               description: 'Tipo de usuário',
               example: 'paciente'
             },
+            telefone: {
+              type: 'string',
+              description: 'Telefone do usuário',
+              example: '11999998888'
+            },
+            foto_perfil: {
+              type: 'string',
+              nullable: true,
+              description: 'URL da foto de perfil',
+              example: null
+            },
             ativo: {
               type: 'boolean',
               description: 'Status do usuário',
               example: true
             },
-            createdAt: {
-              type: 'string',
-              format: 'date-time',
-              description: 'Data de criação'
+            paciente: {
+              type: 'object',
+              nullable: true,
+              description: 'Dados do paciente (presente apenas quando tipo = paciente)',
+              properties: {
+                id: {
+                  type: 'integer',
+                  example: 1
+                },
+                cpf: {
+                  type: 'string',
+                  example: '12345678900'
+                },
+                data_nascimento: {
+                  type: 'string',
+                  format: 'date',
+                  example: '1990-01-15'
+                },
+                endereco: {
+                  type: 'string',
+                  example: 'Rua das Flores, 123'
+                }
+              }
             },
-            updatedAt: {
-              type: 'string',
-              format: 'date-time',
-              description: 'Data da última atualização'
+            clinica: {
+              type: 'object',
+              nullable: true,
+              description: 'Dados da clínica (presente apenas quando tipo = clinica)',
+              properties: {
+                id: {
+                  type: 'integer',
+                  example: 1
+                },
+                cnpj: {
+                  type: 'string',
+                  example: '12345678000199'
+                },
+                nome_fantasia: {
+                  type: 'string',
+                  example: 'Clínica Vida Saudável'
+                },
+                descricao: {
+                  type: 'string',
+                  example: 'Clínica especializada em saúde'
+                },
+                endereco: {
+                  type: 'string',
+                  example: 'Av. Paulista, 1000'
+                },
+                cidade: {
+                  type: 'string',
+                  example: 'São Paulo'
+                },
+                estado: {
+                  type: 'string',
+                  example: 'SP'
+                },
+                cep: {
+                  type: 'string',
+                  example: '01310-100'
+                },
+                telefone_comercial: {
+                  type: 'string',
+                  example: '1133334444'
+                },
+                foto_capa: {
+                  type: 'string',
+                  nullable: true,
+                  example: '/uploads/capa-clinica1.jpg'
+                },
+                ativo: {
+                  type: 'boolean',
+                  example: true
+                },
+                especializacoes: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      id: {
+                        type: 'integer',
+                        example: 1
+                      },
+                      nome: {
+                        type: 'string',
+                        example: 'Cardiologia'
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
         },

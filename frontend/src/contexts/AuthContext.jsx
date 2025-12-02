@@ -79,7 +79,7 @@ export function AuthProvider({ children }) {
     isAuthenticated: !!user,
     isPaciente: user?.tipo === 'paciente',
     isClinica: user?.tipo === 'clinica',
-    isAdmin: user?.tipo === 'admin'
+
   };
 
   return (

@@ -1,30 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Loading from '../components/Loading';
+import { formatarTelefone, formatarCPF, formatarCNPJ } from '../utils/formatters';
 
 export default function ConfiguracoesPerfil() {
   const { user } = useAuth();
   const navigate = useNavigate();
-
-  // Função para formatar telefone
-  const formatarTelefone = (telefone) => {
-    if (!telefone) return 'Não informado';
-    const numeros = telefone.replace(/\D/g, '');
-    if (numeros.length === 11) {
-      return `(${numeros.slice(0, 2)})${numeros.slice(2, 7)}-${numeros.slice(7)}`;
-    }
-    return telefone;
-  };
-
-  // Função para formatar CPF
-  const formatarCPF = (cpf) => {
-    if (!cpf) return 'Não informado';
-    const numeros = cpf.replace(/\D/g, '');
-    if (numeros.length === 11) {
-      return `${numeros.slice(0, 3)}.${numeros.slice(3, 6)}.${numeros.slice(6, 9)}-${numeros.slice(9)}`;
-    }
-    return cpf;
-  };
 
   if (!user) {
     return <Loading />;
@@ -82,7 +63,7 @@ export default function ConfiguracoesPerfil() {
               <>
                 <div>
                   <label className="text-sm text-gray-600 font-medium">CNPJ</label>
-                  <p className="text-gray-900 mt-1 text-lg">{user.clinica.cnpj || 'Não informado'}</p>
+                  <p className="text-gray-900 mt-1 text-lg">{formatarCNPJ(user.clinica.cnpj)}</p>
                 </div>
                 <div>
                   <label className="text-sm text-gray-600 font-medium">Nome Fantasia</label>

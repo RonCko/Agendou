@@ -124,11 +124,10 @@ class ClinicaController {
     }
   }
 
-  // Atualizar dados da clínica (apenas a própria clínica ou admin)
+  // Atualizar dados da clínica (apenas a própria clínica)
   async atualizar(req, res) {
     try {
       const { id } = req.params;
-      const usuario = req.usuario || req.usuarioSessao;
       const { nome_fantasia, descricao, endereco, cidade, estado, cep, telefone_comercial, foto_capa } = req.body;
 
       const clinica = await Clinica.findByPk(id);
@@ -137,9 +136,9 @@ class ClinicaController {
         return res.status(404).json({ erro: 'Clínica não encontrada' });
       }
 
-      // Verificar permissão (admin pode tudo, clinica só a própria)
-      if (usuario.tipo !== 'admin' && clinica.usuario_id !== usuario.id) {
-        return res.status(403).json({ erro: 'Sem permissão para alterar esta clínica' });
+      // Verificar propriedade (apenas o dono da clínica pode atualizar)
+      if (clinica.usuario_id !== req.usuarioId) {
+        return res.status(403).json({ erro: 'Não autorizado' });
       }
 
       // Atualizar campos
@@ -168,7 +167,6 @@ class ClinicaController {
   async adicionarEspecializacao(req, res) {
     try {
       const { id } = req.params;
-      const usuario = req.usuario || req.usuarioSessao;
       const { especializacao_id, preco, duracao_minutos } = req.body;
 
       const clinica = await Clinica.findByPk(id);
@@ -177,9 +175,9 @@ class ClinicaController {
         return res.status(404).json({ erro: 'Clínica não encontrada' });
       }
 
-      // Verificar permissão (admin pode tudo, clinica só a própria)
-      if (usuario.tipo !== 'admin' && clinica.usuario_id !== usuario.id) {
-        return res.status(403).json({ erro: 'Sem permissão para alterar esta clínica' });
+      // Verificar propriedade (apenas o dono da clínica pode adicionar especializações)
+      if (clinica.usuario_id !== req.usuarioId) {
+        return res.status(403).json({ erro: 'Não autorizado' });
       }
 
       const especializacao = await Especializacao.findByPk(especializacao_id);
@@ -209,7 +207,6 @@ class ClinicaController {
   async removerEspecializacao(req, res) {
     try {
       const { id, especializacao_id } = req.params;
-      const usuario = req.usuario || req.usuarioSessao;
 
       const clinica = await Clinica.findByPk(id);
 
@@ -217,9 +214,9 @@ class ClinicaController {
         return res.status(404).json({ erro: 'Clínica não encontrada' });
       }
 
-      // Verificar permissão (admin pode tudo, clinica só a própria)
-      if (usuario.tipo !== 'admin' && clinica.usuario_id !== usuario.id) {
-        return res.status(403).json({ erro: 'Sem permissão para alterar esta clínica' });
+      // Verificar propriedade (apenas o dono da clínica pode remover especializações)
+      if (clinica.usuario_id !== req.usuarioId) {
+        return res.status(403).json({ erro: 'Não autorizado' });
       }
 
       const removido = await ClinicaEspecializacao.destroy({
@@ -249,7 +246,6 @@ class ClinicaController {
   async configurarHorariosRecorrentes(req, res) {
     try {
       const { id } = req.params;
-      const usuario = req.usuario || req.usuarioSessao;
       const { 
         especializacao_id,
         dias_semana, // Array [0-6]
@@ -269,9 +265,9 @@ class ClinicaController {
         return res.status(404).json({ erro: 'Clínica não encontrada' });
       }
 
-      // Verificar permissão
-      if (usuario.tipo !== 'admin' && clinica.usuario_id !== usuario.id) {
-        return res.status(403).json({ erro: 'Sem permissão para alterar esta clínica' });
+      // Verificar propriedade (apenas o dono da clínica pode configurar horários)
+      if (clinica.usuario_id !== req.usuarioId) {
+        return res.status(403).json({ erro: 'Não autorizado' });
       }
 
       // Validações
@@ -380,7 +376,6 @@ class ClinicaController {
   async bloquearHorarios(req, res) {
     try {
       const { id } = req.params;
-      const usuario = req.usuario || req.usuarioSessao;
       const { 
         especializacao_id,
         data_excecao,
@@ -396,9 +391,9 @@ class ClinicaController {
         return res.status(404).json({ erro: 'Clínica não encontrada' });
       }
 
-      // Verificar permissão
-      if (usuario.tipo !== 'admin' && clinica.usuario_id !== usuario.id) {
-        return res.status(403).json({ erro: 'Sem permissão para alterar esta clínica' });
+      // Verificar propriedade (apenas o dono da clínica pode bloquear horários)
+      if (clinica.usuario_id !== req.usuarioId) {
+        return res.status(403).json({ erro: 'Não autorizado' });
       }
 
       // Validações
@@ -483,7 +478,6 @@ class ClinicaController {
   async removerExcecao(req, res) {
     try {
       const { id, excecao_id } = req.params;
-      const usuario = req.usuario || req.usuarioSessao;
 
       const clinica = await Clinica.findByPk(id);
 
@@ -491,9 +485,9 @@ class ClinicaController {
         return res.status(404).json({ erro: 'Clínica não encontrada' });
       }
 
-      // Verificar permissão
-      if (usuario.tipo !== 'admin' && clinica.usuario_id !== usuario.id) {
-        return res.status(403).json({ erro: 'Sem permissão para alterar esta clínica' });
+      // Verificar propriedade (apenas o dono da clínica pode remover exceções)
+      if (clinica.usuario_id !== req.usuarioId) {
+        return res.status(403).json({ erro: 'Não autorizado' });
       }
 
       const removido = await HorarioExcecao.destroy({

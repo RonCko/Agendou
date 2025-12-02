@@ -159,12 +159,6 @@ router.post('/registrar', AuthController.registrar);
  *                       nullable: true
  *                     ativo:
  *                       type: boolean
- *                     createdAt:
- *                       type: string
- *                       format: date-time
- *                     updatedAt:
- *                       type: string
- *                       format: date-time
  *                     paciente:
  *                       type: object
  *                       description: Presente apenas se tipo = 'paciente'
@@ -228,8 +222,6 @@ router.post('/registrar', AuthController.registrar);
  *                     telefone: "11987654321"
  *                     foto_perfil: null
  *                     ativo: true
- *                     createdAt: "2025-12-01T10:30:00.000Z"
- *                     updatedAt: "2025-12-01T10:30:00.000Z"
  *                     paciente:
  *                       id: 2
  *                       cpf: "12345678900"
@@ -248,8 +240,6 @@ router.post('/registrar', AuthController.registrar);
  *                     telefone: "1133334444"
  *                     foto_perfil: null
  *                     ativo: true
- *                     createdAt: "2025-11-28T08:00:00.000Z"
- *                     updatedAt: "2025-11-28T08:00:00.000Z"
  *                     clinica:
  *                       id: 1
  *                       cnpj: "12345678000199"

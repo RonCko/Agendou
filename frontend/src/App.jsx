@@ -1,22 +1,26 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { lazy, Suspense } from 'react'
 import { useAuth } from './contexts/AuthContext'
 
-// Pages
+// Pages - Eager loading for public routes
 import Home from './pages/Home'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Clinicas from './pages/Clinicas'
 import ClinicaDetalhes from './pages/ClinicaDetalhes'
-import MeusAgendamentos from './pages/MeusAgendamentos'
-import PainelClinica from './pages/PainelClinica'
-import NovoAgendamento from './pages/NovoAgendamento'
-import ConfiguracaoClinica from './pages/ConfiguracaoClinica'
-import DashboardClinica from './pages/DashboardClinica'
-import ConfiguracoesPerfil from './pages/ConfiguracoesPerfil'
+
+// Pages - Lazy loading for authenticated routes
+const MeusAgendamentos = lazy(() => import('./pages/MeusAgendamentos'))
+const PainelClinica = lazy(() => import('./pages/PainelClinica'))
+const NovoAgendamento = lazy(() => import('./pages/NovoAgendamento'))
+const ConfiguracaoClinica = lazy(() => import('./pages/ConfiguracaoClinica'))
+const DashboardClinica = lazy(() => import('./pages/DashboardClinica'))
+const ConfiguracoesPerfil = lazy(() => import('./pages/ConfiguracoesPerfil'))
 
 // Components
 import Navbar from './components/Navbar'
 import ProtectedRoute from './components/ProtectedRoute'
+import Loading from './components/Loading'
 
 function App() {
   return (
@@ -24,7 +28,8 @@ function App() {
       <div className="min-h-screen bg-gray-50">
         <Navbar />
         <main>
-          <Routes>
+          <Suspense fallback={<Loading />}>
+            <Routes>
             {/* Rotas públicas */}
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
@@ -88,6 +93,7 @@ function App() {
             {/* 404 */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
+          </Suspense>
         </main>
       </div>
     </BrowserRouter>

@@ -88,8 +88,6 @@ export const uploadAPI = {
 // Dashboard
 export const dashboardAPI = {
   clinica: () => api.get('/dashboard/clinica'),
-  paciente: () => api.get('/dashboard/paciente'),
-  admin: () => api.get('/dashboard/admin')
 };
 
 export default api;

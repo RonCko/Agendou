@@ -6,10 +6,8 @@ class DashboardController {
   // Dashboard da clínica
   async clinica(req, res) {
     try {
-      const usuario = req.usuario || req.usuarioSessao;
-
       // Buscar clínica do usuário
-      const clinica = await Clinica.findOne({ where: { usuario_id: usuario.id } });
+      const clinica = await Clinica.findOne({ where: { usuario_id: req.usuarioId } });
       if (!clinica) {
         return res.status(404).json({ erro: 'Clínica não encontrada' });
       }
@@ -158,8 +156,6 @@ class DashboardController {
       return res.status(500).json({ erro: 'Erro ao buscar dados do dashboard' });
     }
   }
-
-  // Dashboard admin (estatísticas gerais)
 
 }
 

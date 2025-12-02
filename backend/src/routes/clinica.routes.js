@@ -115,7 +115,7 @@ const router = express.Router();
  *   put:
  *     tags: [Clínicas]
  *     summary: Atualizar dados da clínica
- *     description: Atualiza informações da clínica (apenas a própria clínica ou admin)
+ *     description: Atualiza informações da clínica (apenas a própria clínica)
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -651,7 +651,7 @@ router.delete('/:id/horarios/excecoes/:excecao_id', verificarToken, eClinica, Cl
  *   put:
  *     tags: [Clínicas]
  *     summary: Atualizar dados da clínica
- *     description: Atualiza informações da clínica (apenas a própria clínica ou admin)
+ *     description: Atualiza informações da clínica (apenas a própria clínica)
  *     security:
  *       - bearerAuth: []
  *     parameters:

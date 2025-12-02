@@ -79,7 +79,7 @@ const router = express.Router();
  *       403:
  *         $ref: '#/components/responses/ForbiddenError'
  */
-router.get('/clinica', [verificarToken, estaLogado, eClinica], DashboardController.clinica);
+router.get('/clinica', verificarToken, eClinica, DashboardController.clinica);
 
 
 export default router;

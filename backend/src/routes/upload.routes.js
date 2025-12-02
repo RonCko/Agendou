@@ -14,7 +14,7 @@ const router = express.Router();
  *     description: |
  *       Faz upload da foto de capa/destaque da clínica.
  *       
- *       **Acesso:** Apenas a própria clínica ou admin  
+ *       **Acesso:** Apenas a própria clínica 
  *       **Formatos aceitos:** JPG, JPEG, PNG  
  *       **Tamanho máximo:** 5MB
  *     security:
