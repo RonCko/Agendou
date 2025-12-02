@@ -42,7 +42,8 @@ router.use(verificarToken);
  *       - in: query
  *         name: especializacao_id
  *         schema:
- *           type: integer
+ *           type: string
+ *           format: uuid
  *         description: Filtrar por especialização (apenas para clínica)
  *     responses:
  *       200:
@@ -75,16 +76,18 @@ router.get('/', AgendamentoController.listar);
  *         name: clinica_id
  *         required: true
  *         schema:
- *           type: integer
+ *           type: string
+ *           format: uuid
  *         description: ID da clínica
- *         example: 1
+ *         example: '215e6b3d-4c7d-4eb3-8c3a-6ee837da97c8'
  *       - in: query
  *         name: especializacao_id
  *         required: true
  *         schema:
- *           type: integer
+ *           type: string
+ *           format: uuid
  *         description: ID da especialização
- *         example: 1
+ *         example: '215e6b3d-4c7d-4eb3-8c3a-6ee837da97c8'
  *       - in: query
  *         name: data
  *         required: true
@@ -136,7 +139,8 @@ router.get('/disponibilidade', AgendamentoController.verificarDisponibilidade);
  *         name: id
  *         required: true
  *         schema:
- *           type: integer
+ *           type: string
+ *           format: uuid
  *         description: ID do agendamento
  *     responses:
  *       200:
@@ -187,13 +191,15 @@ router.get('/:id', AgendamentoController.buscarPorId);
  *               - hora_agendamento
  *             properties:
  *               clinica_id:
- *                 type: integer
+ *                 type: string
+ *                 format: uuid
  *                 description: ID da clínica
- *                 example: 1
+ *                 example: '215e6b3d-4c7d-4eb3-8c3a-6ee837da97c8'
  *               especializacao_id:
- *                 type: integer
+ *                 type: string
+ *                 format: uuid
  *                 description: ID da especialização
- *                 example: 1
+ *                 example: '215e6b3d-4c7d-4eb3-8c3a-6ee837da97c8'
  *               data_agendamento:
  *                 type: string
  *                 format: date
@@ -247,8 +253,10 @@ router.post('/', AgendamentoController.criar);
  *         name: id
  *         required: true
  *         schema:
- *           type: integer
+ *           type: string
+ *           format: uuid
  *         description: ID do agendamento
+ *         example: '415e6b3d-4c7d-4eb3-8c3a-6ee837da97ca'
  *     requestBody:
  *       required: true
  *       content:
@@ -313,8 +321,10 @@ router.put('/:id', AgendamentoController.atualizar);
  *         name: id
  *         required: true
  *         schema:
- *           type: integer
+ *           type: string
+ *           format: uuid
  *         description: ID do agendamento
+ *         example: '415e6b3d-4c7d-4eb3-8c3a-6ee837da97ca'
  *     responses:
  *       200:
  *         description: Agendamento cancelado com sucesso

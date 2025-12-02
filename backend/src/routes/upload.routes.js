@@ -24,7 +24,8 @@ const router = express.Router();
  *         name: id
  *         required: true
  *         schema:
- *           type: integer
+ *           type: string
+ *           format: uuid
  *         description: ID da clínica
  *     requestBody:
  *       required: true
@@ -75,7 +76,8 @@ router.post('/clinica/:id/capa', [verificarToken, estaLogado, eClinica], upload.
  *         name: id
  *         required: true
  *         schema:
- *           type: integer
+ *           type: string
+ *           format: uuid
  *         description: ID da clínica
  *     responses:
  *       200:
@@ -115,7 +117,8 @@ router.get('/clinica/:id/capa', UploadController.buscarFotoCapa);
  *         name: id
  *         required: true
  *         schema:
- *           type: integer
+ *           type: string
+ *           format: uuid
  *         description: ID da clínica
  *     requestBody:
  *       required: true
@@ -170,7 +173,8 @@ router.post('/clinica/:id/capa', [verificarToken, estaLogado, eClinica], upload.
  *         name: id
  *         required: true
  *         schema:
- *           type: integer
+ *           type: string
+ *           format: uuid
  *         description: ID da clínica
  *     responses:
  *       200:
@@ -210,7 +214,8 @@ router.get('/clinica/:id/capa', UploadController.buscarFotoCapa);
  *         name: id
  *         required: true
  *         schema:
- *           type: integer
+ *           type: string
+ *           format: uuid
  *         description: ID da clínica
  *     requestBody:
  *       required: true
@@ -267,8 +272,10 @@ router.put('/clinica/:id/capa', [verificarToken, estaLogado, eClinica], upload.s
  *         name: id
  *         required: true
  *         schema:
- *           type: integer
+ *           type: string
+ *           format: uuid
  *         description: ID da clínica
+ *         example: '215e6b3d-4c7d-4eb3-8c3a-6ee837da97c8'
  *     responses:
  *       200:
  *         description: Foto de capa removida com sucesso

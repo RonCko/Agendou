@@ -144,7 +144,8 @@ router.post('/registrar', AuthController.registrar);
  *                   description: Dados completos do usuário (inclui 'paciente' OU 'clinica' conforme o tipo)
  *                   properties:
  *                     id:
- *                       type: integer
+ *                       type: string
+ *                       format: uuid
  *                     nome:
  *                       type: string
  *                     email:
@@ -164,7 +165,8 @@ router.post('/registrar', AuthController.registrar);
  *                       description: Presente apenas se tipo = 'paciente'
  *                       properties:
  *                         id:
- *                           type: integer
+ *                           type: string
+ *                           format: uuid
  *                         cpf:
  *                           type: string
  *                         data_nascimento:
@@ -177,7 +179,8 @@ router.post('/registrar', AuthController.registrar);
  *                       description: Presente apenas se tipo = 'clinica'
  *                       properties:
  *                         id:
- *                           type: integer
+ *                           type: string
+ *                           format: uuid
  *                         cnpj:
  *                           type: string
  *                         nome_fantasia:
@@ -205,7 +208,8 @@ router.post('/registrar', AuthController.registrar);
  *                             type: object
  *                             properties:
  *                               id:
- *                                 type: integer
+ *                                 type: string
+ *                                 format: uuid
  *                               nome:
  *                                 type: string
  *             examples:

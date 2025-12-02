@@ -15,7 +15,8 @@ const router = express.Router();
  *       - in: query
  *         name: especializacao_id
  *         schema:
- *           type: integer
+ *           type: string
+ *           format: uuid
  *         description: Filtrar por ID da especialização
  *         example: 1
  *       - in: query
@@ -71,9 +72,10 @@ const router = express.Router();
  *         name: id
  *         required: true
  *         schema:
- *           type: integer
+ *           type: string
+ *           format: uuid
  *         description: ID da clínica
- *         example: 1
+ *         example: '215e6b3d-4c7d-4eb3-8c3a-6ee837da97c8'
  *     responses:
  *       200:
  *         description: Detalhes da clínica
@@ -123,8 +125,10 @@ const router = express.Router();
  *         name: id
  *         required: true
  *         schema:
- *           type: integer
+ *           type: string
+ *           format: uuid
  *         description: ID da clínica
+ *         example: '215e6b3d-4c7d-4eb3-8c3a-6ee837da97c8'
  *     requestBody:
  *       required: true
  *       content:
@@ -183,7 +187,8 @@ const router = express.Router();
  *         name: id
  *         required: true
  *         schema:
- *           type: integer
+ *           type: string
+ *           format: uuid
  *         description: ID da clínica
  *     requestBody:
  *       required: true
@@ -196,7 +201,8 @@ const router = express.Router();
  *               - valor_consulta
  *             properties:
  *               especializacao_id:
- *                 type: integer
+ *                 type: string
+ *                 format: uuid
  *                 description: ID da especialização
  *                 example: 1
  *               valor_consulta:
@@ -219,8 +225,9 @@ const router = express.Router();
  *                   type: object
  *                   properties:
  *                     id:
- *                       type: integer
- *                       example: 1
+ *                       type: string
+ *                       format: uuid
+ *                       example: '215e6b3d-4c7d-4eb3-8c3a-6ee837da97c8'
  *                     nome:
  *                       type: string
  *                       example: Cardiologia
@@ -243,13 +250,15 @@ const router = express.Router();
  *         name: id
  *         required: true
  *         schema:
- *           type: integer
+ *           type: string
+ *           format: uuid
  *         description: ID da clínica
  *       - in: path
  *         name: especializacao_id
  *         required: true
  *         schema:
- *           type: integer
+ *           type: string
+ *           format: uuid
  *         description: ID da especialização
  *     responses:
  *       200:
@@ -607,9 +616,10 @@ router.delete('/:id/horarios/excecoes/:excecao_id', verificarToken, eClinica, Cl
  *         name: id
  *         required: true
  *         schema:
- *           type: integer
+ *           type: string
+ *           format: uuid
  *         description: ID da clínica
- *         example: 1
+ *         example: '215e6b3d-4c7d-4eb3-8c3a-6ee837da97c8'
  *     responses:
  *       200:
  *         description: Detalhes da clínica
@@ -659,7 +669,8 @@ router.delete('/:id/horarios/excecoes/:excecao_id', verificarToken, eClinica, Cl
  *         name: id
  *         required: true
  *         schema:
- *           type: integer
+ *           type: string
+ *           format: uuid
  *         description: ID da clínica
  *     requestBody:
  *       required: true
@@ -719,7 +730,8 @@ router.delete('/:id/horarios/excecoes/:excecao_id', verificarToken, eClinica, Cl
  *         name: id
  *         required: true
  *         schema:
- *           type: integer
+ *           type: string
+ *           format: uuid
  *         description: ID da clínica
  *     requestBody:
  *       required: true
@@ -732,9 +744,10 @@ router.delete('/:id/horarios/excecoes/:excecao_id', verificarToken, eClinica, Cl
  *               - valor_consulta
  *             properties:
  *               especializacao_id:
- *                 type: integer
+ *                 type: string
+ *                 format: uuid
  *                 description: ID da especialização
- *                 example: 1
+ *                 example: '215e6b3d-4c7d-4eb3-8c3a-6ee837da97c8'
  *               valor_consulta:
  *                 type: number
  *                 format: decimal
@@ -755,8 +768,9 @@ router.delete('/:id/horarios/excecoes/:excecao_id', verificarToken, eClinica, Cl
  *                   type: object
  *                   properties:
  *                     id:
- *                       type: integer
- *                       example: 1
+ *                       type: string
+ *                       format: uuid
+ *                       example: '215e6b3d-4c7d-4eb3-8c3a-6ee837da97c8'
  *                     nome:
  *                       type: string
  *                       example: Cardiologia
@@ -779,13 +793,15 @@ router.delete('/:id/horarios/excecoes/:excecao_id', verificarToken, eClinica, Cl
  *         name: id
  *         required: true
  *         schema:
- *           type: integer
+ *           type: string
+ *           format: uuid
  *         description: ID da clínica
  *       - in: path
  *         name: especializacao_id
  *         required: true
  *         schema:
- *           type: integer
+ *           type: string
+ *           format: uuid
  *         description: ID da especialização
  *     responses:
  *       200:

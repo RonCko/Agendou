@@ -62,6 +62,7 @@ const router = express.Router();
  *                     properties:
  *                       especializacao:
  *                         type: string
+ *                         format: uuid
  *                       total:
  *                         type: integer
  *                 graficoUltimos30Dias:
